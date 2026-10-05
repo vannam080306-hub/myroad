@@ -149,6 +149,9 @@
       <button class="button" id="importButton" title="Mở sơ đồ JSON">
         <svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 14v5h14v-5"/></svg><span class="export-label">Mở</span>
       </button>
+      <button class="button" id="exportJsonButton" title="Lưu sơ đồ dạng JSON">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/><path d="M8 7h1m6 0h1"/></svg><span class="export-label">JSON</span>
+      </button>
       <button class="button primary" id="exportButton" title="Xuất sơ đồ dạng SVG">
         <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg><span class="export-label">Xuất</span>
       </button>
@@ -223,7 +226,7 @@
       const el = (id) => document.getElementById(id);
       let map = loadMap();
       let selectedId = 'root';
-      let zoom = 1;
+      let zoom = .65;
       let pan = { x: 0, y: 0 };
       let history = [];
       let historyIndex = -1;
@@ -352,7 +355,7 @@
         const child = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: parent.id === 'root' ? COLORS[siblings.length % COLORS.length] : parent.color, x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y + (siblings.length ? (siblings.length % 2 ? 100 : -100) : 0) };
         map.nodes.push(child);
         selectedId = child.id;
-        scheduleSave(); render(); beginEdit(child.id);
+        snapshot(); scheduleSave(); render(); beginEdit(child.id);
       }
 
       function addSibling() {
@@ -362,11 +365,10 @@
         if (!parent) return;
         snapshot();
         const siblings = childrenOf(parent.id);
-        const direction = node.x >= parent.x ? 1 : -1;
         const sibling = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: node.color, x: node.x, y: node.y + (siblings.length % 2 ? 100 : -100) };
         map.nodes.push(sibling);
         selectedId = sibling.id;
-        scheduleSave(); render(); beginEdit(sibling.id);
+        snapshot(); scheduleSave(); render(); beginEdit(sibling.id);
       }
 
       function deleteSelected() {
@@ -381,7 +383,7 @@
         }
         map.nodes = map.nodes.filter(item => !removed.has(item.id));
         selectedId = node.parent;
-        scheduleSave(); render();
+        snapshot(); scheduleSave(); render();
       }
 
       function beginEdit(id) {
@@ -399,9 +401,9 @@
           if (editingId !== id) return;
           editingId = null;
           if (commit && input.value.trim()) {
-            snapshot(); node.text = input.value.trim();
+            node.text = input.value.trim();
             if (id === 'root') map.title = node.text;
-            scheduleSave();
+            snapshot(); scheduleSave();
           }
           render();
         };
@@ -439,6 +441,17 @@
       function applyTransform() {
         el('stage').style.transform = `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${zoom})`;
         el('zoomLabel').textContent = `${Math.round(zoom * 100)}%`;
+      }
+
+      function fitMap() {
+        const bounds = map.nodes.reduce((box, node) => ({ minX: Math.min(box.minX, node.x), maxX: Math.max(box.maxX, node.x), minY: Math.min(box.minY, node.y), maxY: Math.max(box.maxY, node.y) }), { minX: 0, maxX: 0, minY: 0, maxY: 0 });
+        const width = Math.max(1, bounds.maxX - bounds.minX + 250);
+        const height = Math.max(1, bounds.maxY - bounds.minY + 150);
+        const area = el('canvasArea');
+        zoom = Math.max(.45, Math.min(1.8, (area.clientWidth - 48) / width, (area.clientHeight - 100) / height));
+        pan.x = -((bounds.minX + bounds.maxX) / 2) * zoom;
+        pan.y = -((bounds.minY + bounds.maxY) / 2) * zoom;
+        applyTransform();
       }
 
       function showToast(message) {
@@ -481,6 +494,11 @@
         showToast('Đã xuất sơ đồ dạng SVG');
       }
 
+      function exportJson() {
+        download(new Blob([JSON.stringify(map, null, 2)], { type: 'application/json;charset=utf-8' }), `${safeFilename(map.title)}.json`);
+        showToast('Đã lưu sơ đồ dạng JSON');
+      }
+
       function download(blob, filename) {
         const url = URL.createObjectURL(blob), link = document.createElement('a');
         link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
@@ -503,9 +521,10 @@
       el('undoButton').addEventListener('click', undo);
       el('redoButton').addEventListener('click', redo);
       el('exportButton').addEventListener('click', exportSvg);
+      el('exportJsonButton').addEventListener('click', exportJson);
       el('zoomIn').addEventListener('click', () => { zoom = Math.min(1.8, zoom + .1); applyTransform(); });
       el('zoomOut').addEventListener('click', () => { zoom = Math.max(.45, zoom - .1); applyTransform(); });
-      el('fitButton').addEventListener('click', () => { zoom = 1; pan = { x: 0, y: 0 }; applyTransform(); });
+      el('fitButton').addEventListener('click', fitMap);
       el('canvasArea').addEventListener('wheel', event => {
         if (!event.ctrlKey && !event.metaKey) return;
         event.preventDefault(); zoom = Math.max(.45, Math.min(1.8, zoom + (event.deltaY < 0 ? .08 : -.08))); applyTransform();
@@ -542,7 +561,7 @@
           const imported = JSON.parse(await file.text());
           if (!imported || !Array.isArray(imported.nodes) || !imported.nodes.some(node => node.id === 'root')) throw new Error('invalid map');
           snapshot(); map = { title: String(imported.title || 'Sơ đồ mới'), nodes: imported.nodes.map(node => ({ ...node, x: Number(node.x) || 0, y: Number(node.y) || 0, text: String(node.text || '') })) };
-          selectedId = 'root'; scheduleSave(); render(); showToast('Đã mở sơ đồ');
+          selectedId = 'root'; fitMap(); snapshot(); scheduleSave(); render(); showToast('Đã mở sơ đồ');
         } catch (_) { showToast('Tệp không đúng định dạng sơ đồ JSON'); }
         event.target.value = '';
       });
@@ -560,6 +579,7 @@
 
       snapshot();
       render();
+      fitMap();
     })();
   </script>
 </body>
