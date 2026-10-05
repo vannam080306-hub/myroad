@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5f0">
+  <title>Mạch | Sơ đồ tư duy</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+
+    :root {
+      color-scheme: light;
+      --paper: #f4f5f0;
+      --white: #fff;
+      --ink: #202721;
+      --muted: #778078;
+      --line: #e7e9e2;
+      --green: #2b5947;
+      --green-light: #e8efe8;
+      --coral: #e67d61;
+      --shadow: 0 10px 30px rgba(31, 42, 34, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 360px; height: 100vh; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; }
+    button, input, textarea { font: inherit; }
+    button { color: inherit; }
+    .app { height: 100%; display: grid; grid-template-rows: 62px 1fr; }
+    .topbar { display: flex; align-items: center; gap: 26px; padding: 0 22px; background: var(--white); border-bottom: 1px solid var(--line); z-index: 5; }
+    .brand { display: flex; align-items: center; gap: 10px; font: 800 19px 'Manrope', sans-serif; letter-spacing: -.5px; white-space: nowrap; }
+    .brand-mark { position: relative; width: 27px; height: 27px; border-radius: 8px; background: var(--green); }
+    .brand-mark:before, .brand-mark:after { content: ''; position: absolute; background: #d9ebdc; border-radius: 2px; }
+    .brand-mark:before { width: 3px; height: 16px; left: 12px; top: 6px; }
+    .brand-mark:after { width: 11px; height: 3px; left: 7px; top: 10px; box-shadow: 0 7px 0 #d9ebdc; }
+    .top-divider { width: 1px; height: 26px; background: var(--line); }
+    .doc-title { width: min(230px, 24vw); padding: 7px 9px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--ink); font: 700 14px 'Manrope', sans-serif; outline: none; }
+    .doc-title:focus { border-color: #cfd7cd; background: #fbfcfa; }
+    .saved-state { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .saved-dot { width: 7px; height: 7px; border-radius: 50%; background: #68a47c; }
+    .top-spacer { flex: 1; }
+    .search-wrap { position: relative; display: flex; align-items: center; }
+    .search-wrap svg { position: absolute; left: 11px; color: #879087; pointer-events: none; }
+    .search { width: 190px; height: 34px; padding: 0 10px 0 34px; border: 1px solid var(--line); border-radius: 6px; outline: none; background: #fbfcfa; font-size: 12px; }
+    .search:focus { border-color: #afc2b2; }
+    .button { height: 34px; display: inline-flex; justify-content: center; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--line); border-radius: 6px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; transition: background .15s, border-color .15s, transform .15s; white-space: nowrap; }
+    .button:hover { background: #f7f9f5; border-color: #cbd3c8; }
+    .button:active { transform: translateY(1px); }
+    .button.primary { background: var(--green); color: white; border-color: var(--green); }
+    .button.primary:hover { background: #224b39; }
+    .button.icon { width: 34px; padding: 0; }
+    .button:disabled { opacity: .38; cursor: default; }
+    .button svg, .tool svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .workspace { min-height: 0; display: grid; grid-template-columns: 222px minmax(0, 1fr) 254px; }
+    .leftbar, .inspector { position: relative; z-index: 3; background: var(--white); }
+    .leftbar { border-right: 1px solid var(--line); padding: 22px 14px; }
+    .side-label { padding: 0 10px; color: #9aa198; font: 500 10px 'DM Mono', monospace; letter-spacing: .7px; text-transform: uppercase; }
+    .map-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 11px 10px; border-radius: 6px; background: #f0f4ef; color: var(--green); font-size: 12px; font-weight: 700; }
+    .map-row svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+    .map-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .side-section { margin-top: 35px; }
+    .side-tools { margin-top: 10px; display: grid; gap: 3px; }
+    .tool { width: 100%; min-height: 39px; padding: 0 10px; display: flex; align-items: center; gap: 11px; border: 0; border-radius: 5px; background: transparent; text-align: left; font-size: 12px; cursor: pointer; }
+    .tool:hover { background: #f5f7f3; }
+    .tool:disabled { opacity: .4; cursor: default; }
+    .tool svg { color: #6f786f; }
+    .key { margin-left: auto; color: #a1a79f; font: 10px 'DM Mono', monospace; }
+    .side-note { position: absolute; left: 22px; right: 22px; bottom: 20px; padding-top: 13px; border-top: 1px solid var(--line); color: #8a9289; font-size: 10px; line-height: 1.6; }
+    .side-note strong { color: #5c695e; font-weight: 600; }
+
+    .canvas-area { position: relative; min-width: 0; overflow: hidden; background-color: #f7f8f4; background-image: radial-gradient(#dfe3dc 0.8px, transparent .8px); background-size: 19px 19px; }
+    .canvas-top { position: absolute; z-index: 2; top: 18px; left: 20px; display: flex; align-items: center; gap: 8px; color: #879087; font: 10px 'DM Mono', monospace; }
+    .canvas-top .crumb-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--coral); }
+    .canvas-top strong { color: #647066; font-weight: 500; }
+    .stage { position: absolute; left: 50%; top: 50%; width: 2400px; height: 1600px; transform-origin: center; will-change: transform; }
+    .links { position: absolute; inset: 0; width: 2400px; height: 1600px; overflow: visible; pointer-events: none; }
+    .links path { fill: none; stroke-width: 2.5; stroke-linecap: round; opacity: .78; }
+    .mind-node { position: absolute; min-width: 144px; max-width: 190px; min-height: 48px; display: flex; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid #e1e6de; border-radius: 7px; background: white; box-shadow: 0 3px 10px rgba(38, 54, 42, .06); color: var(--ink); font-size: 13px; line-height: 1.35; font-weight: 600; cursor: grab; user-select: none; transition: box-shadow .15s, border-color .15s, transform .15s; }
+    .mind-node:hover { border-color: #bbcbbb; box-shadow: 0 5px 16px rgba(38, 54, 42, .12); }
+    .mind-node.selected { border: 2px solid var(--node-color, var(--green)); padding: 9px 12px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--node-color, var(--green)) 12%, transparent), 0 5px 15px rgba(38, 54, 42, .1); }
+    .mind-node.root { min-width: 188px; min-height: 64px; justify-content: center; padding: 13px 17px; border: 0; border-radius: 9px; background: var(--green); color: white; font: 700 15px 'Manrope', sans-serif; text-align: center; box-shadow: 0 8px 20px rgba(43, 89, 71, .2); }
+    .node-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--node-color); }
+    .mind-node.root .node-dot { display: none; }
+    .node-text { overflow-wrap: anywhere; pointer-events: none; }
+    .mind-node input { width: 100%; min-width: 90px; padding: 0; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
+    .mind-node.root input { text-align: center; }
+    .zoom-controls { position: absolute; z-index: 2; left: 18px; bottom: 18px; display: flex; align-items: center; gap: 4px; padding: 5px; border: 1px solid #e5e8e1; border-radius: 7px; background: white; box-shadow: 0 4px 12px rgba(40, 48, 39, .06); }
+    .zoom-controls .button { border: 0; }
+    .zoom-level { min-width: 43px; color: #68726a; text-align: center; font: 10px 'DM Mono', monospace; }
+    .canvas-hint { position: absolute; right: 20px; bottom: 26px; color: #9ba29a; font-size: 10px; }
+
+    .inspector { border-left: 1px solid var(--line); padding: 22px 17px; overflow-y: auto; }
+    .inspector-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font: 700 13px 'Manrope', sans-serif; }
+    .inspector-heading span { color: #9aa198; font: 10px 'DM Mono', monospace; }
+    .field-label { display: block; margin: 18px 0 8px; color: #8d968d; font: 500 10px 'DM Mono', monospace; letter-spacing: .35px; text-transform: uppercase; }
+    .topic-field { width: 100%; min-height: 82px; resize: vertical; padding: 10px; border: 1px solid var(--line); border-radius: 5px; outline: none; font-size: 12px; line-height: 1.5; }
+    .topic-field:focus { border-color: #a9bea9; }
+    .color-options { display: flex; gap: 9px; align-items: center; }
+    .swatch { width: 21px; height: 21px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 1px #dfe3dc; cursor: pointer; }
+    .swatch.active { box-shadow: 0 0 0 2px var(--ink); }
+    .detail-row { display: flex; align-items: center; justify-content: space-between; min-height: 38px; border-bottom: 1px solid #f0f1ed; color: #858e85; font-size: 11px; }
+    .detail-row strong { color: #4f5b51; font-weight: 600; }
+    .inspector-actions { margin-top: 22px; display: grid; gap: 7px; }
+    .inspector-actions .button { justify-content: flex-start; width: 100%; }
+    .empty-inspector { color: #8a9289; font-size: 12px; line-height: 1.6; }
+    .toast { position: absolute; z-index: 10; left: 50%; bottom: 24px; transform: translate(-50%, 12px); padding: 9px 14px; border-radius: 6px; background: #26372c; color: white; font-size: 11px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .file-input { display: none; }
+
+    @media (max-width: 1000px) {
+      .workspace { grid-template-columns: 196px minmax(0, 1fr); }
+      .inspector { display: none; }
+      .search { width: 150px; }
+    }
+    @media (max-width: 680px) {
+      body { min-width: 360px; }
+      .app { grid-template-rows: 56px 1fr; }
+      .topbar { gap: 11px; padding: 0 12px; }
+      .brand { font-size: 16px; }
+      .brand-mark { width: 24px; height: 24px; }
+      .top-divider, .saved-state, .search-wrap, .export-label { display: none; }
+      .doc-title { width: min(145px, 39vw); font-size: 12px; }
+      .topbar .button { height: 32px; padding: 0 8px; font-size: 11px; }
+      .workspace { grid-template-columns: 54px minmax(0, 1fr); }
+      .leftbar { padding: 14px 7px; }
+      .side-label, .map-row span, .tool span:not(.key), .key, .side-note { display: none; }
+      .map-row { justify-content: center; margin-top: 0; padding: 11px 0; }
+      .side-tools { margin-top: 16px; }
+      .tool { min-height: 42px; justify-content: center; padding: 0; }
+      .tool svg { width: 18px; height: 18px; }
+      .canvas-top { top: 13px; left: 12px; }
+      .canvas-hint { display: none; }
+      .zoom-controls { left: 9px; bottom: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Mạch</div>
+      <div class="top-divider"></div>
+      <input class="doc-title" id="mapTitle" aria-label="Tên sơ đồ" value="Kế hoạch dự án">
+      <div class="saved-state"><span class="saved-dot"></span><span id="saveState">Đã lưu</span></div>
+      <div class="top-spacer"></div>
+      <label class="search-wrap" aria-label="Tìm chủ đề">
+        <svg viewBox="0 0 24 24" width="15" height="15"><circle cx="10.8" cy="10.8" r="6.7" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <input class="search" id="searchInput" placeholder="Tìm chủ đề..." type="search">
+      </label>
+      <button class="button" id="importButton" title="Mở sơ đồ JSON">
+        <svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 14v5h14v-5"/></svg><span class="export-label">Mở</span>
+      </button>
+      <button class="button primary" id="exportButton" title="Xuất sơ đồ dạng SVG">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg><span class="export-label">Xuất</span>
+      </button>
+      <input class="file-input" id="fileInput" type="file" accept="application/json,.json">
+    </header>
+
+    <div class="workspace">
+      <aside class="leftbar">
+        <div class="side-label">Không gian làm việc</div>
+        <div class="map-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="m10 10-3.5-3.5M14 10l3.5-3.5M10 14l-3.5 3.5"/></svg><span id="sideTitle">Kế hoạch dự án</span></div>
+        <section class="side-section">
+          <div class="side-label">Chỉnh sửa</div>
+          <div class="side-tools">
+            <button class="tool" id="addChild"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 12h4a3 3 0 0 0 3-3V8.5M12.5 12a3 3 0 0 1 3 3v.5"/></svg><span>Thêm nhánh con</span><span class="key">Tab</span></button>
+            <button class="tool" id="addSibling"><svg viewBox="0 0 24 24"><path d="M12 4v16M12 8H6m6 8h6"/><circle cx="5" cy="8" r="2"/><circle cx="19" cy="16" r="2"/><circle cx="12" cy="4" r="1.5"/></svg><span>Thêm chủ đề cùng cấp</span><span class="key">Enter</span></button>
+            <button class="tool" id="editNode"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg><span>Đổi tên chủ đề</span><span class="key">F2</span></button>
+            <button class="tool" id="deleteNode"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg><span>Xóa chủ đề</span><span class="key">Del</span></button>
+          </div>
+        </section>
+        <section class="side-section">
+          <div class="side-label">Lịch sử</div>
+          <div class="side-tools">
+            <button class="tool" id="undoButton"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2"/></svg><span>Hoàn tác</span><span class="key">Ctrl Z</span></button>
+            <button class="tool" id="redoButton"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5m5 5H10a6 6 0 0 0 0 12h2"/></svg><span>Làm lại</span><span class="key">Ctrl Y</span></button>
+          </div>
+        </section>
+        <div class="side-note"><strong>Mẹo nhanh</strong><br>Chọn một chủ đề rồi nhấn Tab để mở rộng ý tưởng.</div>
+      </aside>
+
+      <section class="canvas-area" id="canvasArea" aria-label="Vùng sơ đồ tư duy">
+        <div class="canvas-top"><span class="crumb-dot"></span><strong>SƠ ĐỒ TƯ DUY</strong><span>/</span><span id="canvasTitle">Kế hoạch dự án</span></div>
+        <div class="stage" id="stage"><svg class="links" id="links" viewBox="0 0 2400 1600" aria-hidden="true"></svg><div id="nodes"></div></div>
+        <div class="zoom-controls">
+          <button class="button icon" id="zoomOut" aria-label="Thu nhỏ" title="Thu nhỏ"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+          <span class="zoom-level" id="zoomLabel">100%</span>
+          <button class="button icon" id="zoomIn" aria-label="Phóng to" title="Phóng to"><svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg></button>
+          <button class="button icon" id="fitButton" aria-label="Căn giữa sơ đồ" title="Căn giữa sơ đồ"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/><path d="M8 8h8v8H8z"/></svg></button>
+        </div>
+        <div class="canvas-hint">Kéo nền để di chuyển · Kéo chủ đề để sắp xếp</div>
+      </section>
+
+      <aside class="inspector" id="inspector">
+        <div class="inspector-heading">Chi tiết chủ đề <span id="nodeCount">0 CHỦ ĐỀ</span></div>
+        <div id="inspectorContent"></div>
+      </aside>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'mach-mindmap-v1';
+      const COLORS = ['#e67d61', '#4f8a67', '#d7a447', '#6488b5', '#a474a0', '#6d8175'];
+      const initialMap = {
+        title: 'Kế hoạch dự án',
+        nodes: [
+          { id: 'root', parent: null, text: 'Kế hoạch dự án', color: '#2b5947', x: 0, y: 0 },
+          { id: 'goal', parent: 'root', text: 'Mục tiêu', color: '#e67d61', x: 300, y: -265 },
+          { id: 'research', parent: 'root', text: 'Nghiên cứu', color: '#4f8a67', x: -300, y: -90 },
+          { id: 'roadmap', parent: 'root', text: 'Lộ trình', color: '#d7a447', x: 300, y: 95 },
+          { id: 'resources', parent: 'root', text: 'Nguồn lực', color: '#6488b5', x: -300, y: 270 },
+          { id: 'goal-1', parent: 'goal', text: 'Giải quyết vấn đề nào?', color: '#e67d61', x: 560, y: -315 },
+          { id: 'goal-2', parent: 'goal', text: 'Kết quả mong đợi', color: '#e67d61', x: 560, y: -215 },
+          { id: 'research-1', parent: 'research', text: 'Người dùng', color: '#4f8a67', x: -560, y: -140 },
+          { id: 'research-2', parent: 'research', text: 'Giải pháp hiện có', color: '#4f8a67', x: -560, y: -40 },
+          { id: 'roadmap-1', parent: 'roadmap', text: 'Các cột mốc', color: '#d7a447', x: 560, y: 45 },
+          { id: 'roadmap-2', parent: 'roadmap', text: 'Thời hạn', color: '#d7a447', x: 560, y: 145 },
+          { id: 'resources-1', parent: 'resources', text: 'Nhân sự', color: '#6488b5', x: -560, y: 220 },
+          { id: 'resources-2', parent: 'resources', text: 'Ngân sách', color: '#6488b5', x: -560, y: 320 }
+        ]
+      };
+      const el = (id) => document.getElementById(id);
+      let map = loadMap();
+      let selectedId = 'root';
+      let zoom = 1;
+      let pan = { x: 0, y: 0 };
+      let history = [];
+      let historyIndex = -1;
+      let saveTimer;
+      let toastTimer;
+      let drag = null;
+      let editingId = null;
+
+      function loadMap() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (saved && Array.isArray(saved.nodes) && saved.nodes.some(node => node.id === 'root')) return saved;
+        } catch (_) { /* Start with the example map if stored data is invalid. */ }
+        return JSON.parse(JSON.stringify(initialMap));
+      }
+
+      function snapshot() {
+        const value = JSON.stringify(map);
+        if (history[historyIndex] === value) return;
+        history = history.slice(0, historyIndex + 1);
+        history.push(value);
+        if (history.length > 50) history.shift();
+        historyIndex = history.length - 1;
+        updateHistoryButtons();
+      }
+
+      function scheduleSave() {
+        el('saveState').textContent = 'Đang lưu';
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch (_) { /* Keep editing if storage is unavailable. */ }
+          el('saveState').textContent = 'Đã lưu';
+        }, 250);
+      }
+
+      function childrenOf(id) { return map.nodes.filter(node => node.parent === id); }
+      function nodeById(id) { return map.nodes.find(node => node.id === id); }
+      function visibleText(text) { return text || 'Chủ đề mới'; }
+
+      function renderLinks() {
+        const links = [];
+        for (const node of map.nodes) {
+          if (node.parent) {
+            const parent = nodeById(node.parent);
+            if (parent) {
+              const side = node.x >= parent.x ? 1 : -1;
+              const x1 = 1200 + parent.x + side * (parent.id === 'root' ? 94 : 86);
+              const y1 = 800 + parent.y;
+              const x2 = 1200 + node.x - side * 74;
+              const y2 = 800 + node.y;
+              const curve = Math.max(38, Math.abs(x2 - x1) * .48);
+              links.push(`<path d="M ${x1} ${y1} C ${x1 + side * curve} ${y1}, ${x2 - side * curve} ${y2}, ${x2} ${y2}" stroke="${escapeAttr(node.color)}"/>`);
+            }
+          }
+        }
+        el('links').innerHTML = links.join('');
+      }
+
+      function render() {
+        el('mapTitle').value = map.title;
+        el('sideTitle').textContent = map.title;
+        el('canvasTitle').textContent = map.title;
+        el('nodes').replaceChildren();
+        for (const node of map.nodes) {
+          const item = document.createElement('div');
+          item.className = `mind-node${node.id === 'root' ? ' root' : ''}${selectedId === node.id ? ' selected' : ''}`;
+          item.dataset.id = node.id;
+          item.style.left = `${1200 + node.x}px`;
+          item.style.top = `${800 + node.y}px`;
+          item.style.transform = 'translate(-50%, -50%)';
+          item.style.setProperty('--node-color', node.color || COLORS[0]);
+          item.innerHTML = `<span class="node-dot"></span><span class="node-text"></span>`;
+          item.querySelector('.node-text').textContent = visibleText(node.text);
+          item.addEventListener('pointerdown', startNodeDrag);
+          item.addEventListener('click', () => selectNode(node.id));
+          item.addEventListener('dblclick', event => { event.stopPropagation(); beginEdit(node.id); });
+          el('nodes').append(item);
+        }
+        renderLinks();
+        renderInspector();
+        applyTransform();
+        updateHistoryButtons();
+      }
+
+      function escapeAttr(value) { return String(value).replace(/[&"<>]/g, char => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[char]); }
+
+      function selectNode(id) {
+        selectedId = id;
+        render();
+      }
+
+      function renderInspector() {
+        const node = nodeById(selectedId);
+        el('nodeCount').textContent = `${map.nodes.length} CHỦ ĐỀ`;
+        if (!node) { el('inspectorContent').innerHTML = '<p class="empty-inspector">Chọn một chủ đề trên sơ đồ để xem chi tiết.</p>'; return; }
+        const parent = node.parent ? nodeById(node.parent) : null;
+        const colorControls = node.id === 'root' ? '' : `<label class="field-label">Màu nhánh</label><div class="color-options">${COLORS.map(color => `<button class="swatch${node.color === color ? ' active' : ''}" data-color="${color}" style="background:${color}" aria-label="Chọn màu ${color}" title="${color}"></button>`).join('')}</div>`;
+        el('inspectorContent').innerHTML = `<label class="field-label" for="topicText">Nội dung</label><textarea class="topic-field" id="topicText" maxlength="160"></textarea>${colorControls}<label class="field-label">Quan hệ</label><div class="detail-row"><span>Chủ đề cha</span><strong>${parent ? escapeAttr(visibleText(parent.text)) : 'Chủ đề trung tâm'}</strong></div><div class="detail-row"><span>Chủ đề con</span><strong>${childrenOf(node.id).length}</strong></div><div class="inspector-actions"><button class="button" id="inspectorChild"><svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>Thêm chủ đề con</button><button class="button" id="inspectorDelete"${node.id === 'root' ? ' disabled' : ''}><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>Xóa chủ đề</button></div>`;
+        const textarea = el('topicText');
+        textarea.value = node.text;
+        textarea.addEventListener('input', () => {
+          node.text = textarea.value;
+          if (node.id === 'root') map.title = textarea.value;
+          el('mapTitle').value = map.title;
+          el('sideTitle').textContent = map.title;
+          el('canvasTitle').textContent = map.title;
+          const visual = document.querySelector(`.mind-node[data-id="${CSS.escape(node.id)}"] .node-text`);
+          if (visual) visual.textContent = visibleText(node.text);
+          scheduleSave();
+        });
+        textarea.addEventListener('change', snapshot);
+        document.querySelectorAll('.swatch').forEach(button => button.addEventListener('click', () => {
+          node.color = button.dataset.color;
+          snapshot(); scheduleSave(); render();
+        }));
+        el('inspectorChild').addEventListener('click', addChild);
+        el('inspectorDelete').addEventListener('click', deleteSelected);
+      }
+
+      function addChild() {
+        const parent = nodeById(selectedId);
+        if (!parent) return;
+        snapshot();
+        const siblings = childrenOf(parent.id);
+        const direction = parent.id === 'root' ? (siblings.length % 2 === 0 ? 1 : -1) : (parent.x >= nodeById(parent.parent)?.x ? 1 : -1);
+        const child = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: parent.id === 'root' ? COLORS[siblings.length % COLORS.length] : parent.color, x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y + (siblings.length ? (siblings.length % 2 ? 100 : -100) : 0) };
+        map.nodes.push(child);
+        selectedId = child.id;
+        scheduleSave(); render(); beginEdit(child.id);
+      }
+
+      function addSibling() {
+        const node = nodeById(selectedId);
+        if (!node || node.id === 'root') { addChild(); return; }
+        const parent = nodeById(node.parent);
+        if (!parent) return;
+        snapshot();
+        const siblings = childrenOf(parent.id);
+        const direction = node.x >= parent.x ? 1 : -1;
+        const sibling = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: node.color, x: node.x, y: node.y + (siblings.length % 2 ? 100 : -100) };
+        map.nodes.push(sibling);
+        selectedId = sibling.id;
+        scheduleSave(); render(); beginEdit(sibling.id);
+      }
+
+      function deleteSelected() {
+        const node = nodeById(selectedId);
+        if (!node || node.id === 'root') return;
+        snapshot();
+        const removed = new Set([node.id]);
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const item of map.nodes) if (removed.has(item.parent) && !removed.has(item.id)) { removed.add(item.id); changed = true; }
+        }
+        map.nodes = map.nodes.filter(item => !removed.has(item.id));
+        selectedId = node.parent;
+        scheduleSave(); render();
+      }
+
+      function beginEdit(id) {
+        editingId = id;
+        const node = nodeById(id);
+        const container = document.querySelector(`.mind-node[data-id="${CSS.escape(id)}"]`);
+        if (!node || !container) return;
+        const text = container.querySelector('.node-text');
+        const input = document.createElement('input');
+        input.maxLength = 160;
+        input.value = node.text;
+        text.replaceWith(input);
+        input.focus(); input.select();
+        const finish = (commit) => {
+          if (editingId !== id) return;
+          editingId = null;
+          if (commit && input.value.trim()) {
+            snapshot(); node.text = input.value.trim();
+            if (id === 'root') map.title = node.text;
+            scheduleSave();
+          }
+          render();
+        };
+        input.addEventListener('keydown', event => {
+          if (event.key === 'Enter') { event.preventDefault(); finish(true); }
+          if (event.key === 'Escape') { event.preventDefault(); finish(false); }
+          event.stopPropagation();
+        });
+        input.addEventListener('blur', () => finish(true), { once: true });
+      }
+
+      function startNodeDrag(event) {
+        if (event.target.tagName === 'INPUT') return;
+        const node = nodeById(event.currentTarget.dataset.id);
+        if (!node) return;
+        selectNode(node.id);
+        drag = { type: 'node', id: node.id, startX: event.clientX, startY: event.clientY, x: node.x, y: node.y, moved: false };
+        el('canvasArea').setPointerCapture(event.pointerId);
+      }
+
+      function moveNodeDrag(event) {
+        if (!drag || drag.type !== 'node') return;
+        const node = nodeById(drag.id);
+        if (!node) return;
+        const dx = (event.clientX - drag.startX) / zoom;
+        const dy = (event.clientY - drag.startY) / zoom;
+        if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+        if (!drag.moved) return;
+        node.x = drag.x + dx; node.y = drag.y + dy;
+        const item = document.querySelector(`.mind-node[data-id="${CSS.escape(node.id)}"]`);
+        if (item) { item.style.left = `${1200 + node.x}px`; item.style.top = `${800 + node.y}px`; }
+        renderLinks();
+      }
+
+      function applyTransform() {
+        el('stage').style.transform = `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) scale(${zoom})`;
+        el('zoomLabel').textContent = `${Math.round(zoom * 100)}%`;
+      }
+
+      function showToast(message) {
+        const toast = el('toast'); toast.textContent = message; toast.classList.add('show');
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+      }
+
+      function updateHistoryButtons() {
+        el('undoButton').disabled = historyIndex <= 0;
+        el('redoButton').disabled = historyIndex >= history.length - 1;
+      }
+
+      function undo() {
+        if (historyIndex <= 0) return;
+        historyIndex--; map = JSON.parse(history[historyIndex]); selectedId = nodeById(selectedId) ? selectedId : 'root'; scheduleSave(); render();
+      }
+      function redo() {
+        if (historyIndex >= history.length - 1) return;
+        historyIndex++; map = JSON.parse(history[historyIndex]); selectedId = nodeById(selectedId) ? selectedId : 'root'; scheduleSave(); render();
+      }
+
+      function exportSvg() {
+        const bounds = map.nodes.reduce((box, node) => ({ minX: Math.min(box.minX, node.x), maxX: Math.max(box.maxX, node.x), minY: Math.min(box.minY, node.y), maxY: Math.max(box.maxY, node.y) }), { minX: 0, maxX: 0, minY: 0, maxY: 0 });
+        const width = bounds.maxX - bounds.minX + 440, height = bounds.maxY - bounds.minY + 260;
+        const offsetX = 220 - bounds.minX, offsetY = 130 - bounds.minY;
+        const paths = map.nodes.filter(node => node.parent).map(node => {
+          const parent = nodeById(node.parent), side = node.x >= parent.x ? 1 : -1;
+          const x1 = offsetX + parent.x + side * 90, y1 = offsetY + parent.y;
+          const x2 = offsetX + node.x - side * 75, y2 = offsetY + node.y;
+          const curve = Math.max(38, Math.abs(x2 - x1) * .48);
+          return `<path d="M ${x1} ${y1} C ${x1 + side * curve} ${y1}, ${x2 - side * curve} ${y2}, ${x2} ${y2}" fill="none" stroke="${escapeAttr(node.color)}" stroke-width="3" stroke-linecap="round"/>`;
+        }).join('');
+        const boxes = map.nodes.map(node => {
+          const x = offsetX + node.x, y = offsetY + node.y, root = node.id === 'root';
+          const fill = root ? '#2b5947' : '#ffffff', color = root ? '#ffffff' : '#202721', w = root ? 190 : 170, h = root ? 58 : 48;
+          return `<g><rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${root ? '#2b5947' : '#e1e6de'}"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="14" font-weight="600" fill="${color}">${escapeAttr(visibleText(node.text))}</text></g>`;
+        }).join('');
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="#f7f8f4"/>${paths}${boxes}</svg>`;
+        download(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `${safeFilename(map.title)}.svg`);
+        showToast('Đã xuất sơ đồ dạng SVG');
+      }
+
+      function download(blob, filename) {
+        const url = URL.createObjectURL(blob), link = document.createElement('a');
+        link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+      }
+
+      function safeFilename(value) { return (value || 'so-do-tu-duy').replace(/[\\/:*?"<>|]/g, '-').trim() || 'so-do-tu-duy'; }
+
+      el('mapTitle').addEventListener('input', event => {
+        map.title = event.target.value;
+        const root = nodeById('root'); if (root) root.text = map.title;
+        el('sideTitle').textContent = map.title; el('canvasTitle').textContent = map.title;
+        const rootText = document.querySelector('.mind-node.root .node-text'); if (rootText) rootText.textContent = visibleText(map.title);
+        scheduleSave();
+      });
+      el('mapTitle').addEventListener('change', snapshot);
+      el('addChild').addEventListener('click', addChild);
+      el('addSibling').addEventListener('click', addSibling);
+      el('editNode').addEventListener('click', () => beginEdit(selectedId));
+      el('deleteNode').addEventListener('click', deleteSelected);
+      el('undoButton').addEventListener('click', undo);
+      el('redoButton').addEventListener('click', redo);
+      el('exportButton').addEventListener('click', exportSvg);
+      el('zoomIn').addEventListener('click', () => { zoom = Math.min(1.8, zoom + .1); applyTransform(); });
+      el('zoomOut').addEventListener('click', () => { zoom = Math.max(.45, zoom - .1); applyTransform(); });
+      el('fitButton').addEventListener('click', () => { zoom = 1; pan = { x: 0, y: 0 }; applyTransform(); });
+      el('canvasArea').addEventListener('wheel', event => {
+        if (!event.ctrlKey && !event.metaKey) return;
+        event.preventDefault(); zoom = Math.max(.45, Math.min(1.8, zoom + (event.deltaY < 0 ? .08 : -.08))); applyTransform();
+      }, { passive: false });
+      el('canvasArea').addEventListener('pointerdown', event => {
+        if (event.target.closest('.mind-node, .zoom-controls, .canvas-top')) return;
+        drag = { type: 'pan', startX: event.clientX, startY: event.clientY, x: pan.x, y: pan.y };
+        el('canvasArea').setPointerCapture(event.pointerId);
+      });
+      el('canvasArea').addEventListener('pointermove', event => {
+        if (!drag) return;
+        if (drag.type === 'node') { moveNodeDrag(event); return; }
+        pan.x = drag.x + event.clientX - drag.startX; pan.y = drag.y + event.clientY - drag.startY; applyTransform();
+      });
+      el('canvasArea').addEventListener('pointerup', () => {
+        if (drag?.type === 'node' && drag.moved) { snapshot(); scheduleSave(); }
+        drag = null;
+      });
+      el('canvasArea').addEventListener('pointercancel', () => {
+        if (drag?.type === 'node' && drag.moved) { snapshot(); scheduleSave(); }
+        drag = null;
+      });
+      el('searchInput').addEventListener('input', event => {
+        const query = event.target.value.trim().toLocaleLowerCase('vi');
+        document.querySelectorAll('.mind-node').forEach(item => {
+          const node = nodeById(item.dataset.id);
+          item.style.opacity = !query || node.text.toLocaleLowerCase('vi').includes(query) ? '1' : '.22';
+        });
+      });
+      el('importButton').addEventListener('click', () => el('fileInput').click());
+      el('fileInput').addEventListener('change', async event => {
+        const file = event.target.files[0]; if (!file) return;
+        try {
+          const imported = JSON.parse(await file.text());
+          if (!imported || !Array.isArray(imported.nodes) || !imported.nodes.some(node => node.id === 'root')) throw new Error('invalid map');
+          snapshot(); map = { title: String(imported.title || 'Sơ đồ mới'), nodes: imported.nodes.map(node => ({ ...node, x: Number(node.x) || 0, y: Number(node.y) || 0, text: String(node.text || '') })) };
+          selectedId = 'root'; scheduleSave(); render(); showToast('Đã mở sơ đồ');
+        } catch (_) { showToast('Tệp không đúng định dạng sơ đồ JSON'); }
+        event.target.value = '';
+      });
+      document.addEventListener('keydown', event => {
+        const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); return; }
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }
+        if (typing) return;
+        if (event.key === 'Tab') { event.preventDefault(); addChild(); }
+        if (event.key === 'Enter') { event.preventDefault(); addSibling(); }
+        if (event.key === 'F2') { event.preventDefault(); beginEdit(selectedId); }
+        if (event.key === 'Delete' || event.key === 'Backspace') { event.preventDefault(); deleteSelected(); }
+        if (event.key === 'Escape') { selectedId = null; render(); }
+      });
+
+      snapshot();
+      render();
+    })();
+  </script>
+</body>
+</html>
