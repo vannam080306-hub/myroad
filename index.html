@@ -107,7 +107,24 @@
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
     .file-input { display: none; }
 
+    .document-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 5px; color: var(--green); font-size: 10px; font-weight: 600; }
+    .mind-node.root .document-badge { color: #e4f1e5; }
+    .node-copy { min-width: 0; }
+    .document-section { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 4px; }
+    .document-note { color: #647066; font-size: 11px; line-height: 1.6; }
+    .document-upload { width: 100%; margin: 8px 0; }
+    .document-list { display: grid; gap: 10px; }
+    .document-item { padding: 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; overflow-wrap: anywhere; }
+    .document-meta { color: #647066; font-size: 10px; margin: 5px 0 8px; }
+    .document-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .document-actions .button { font-size: 11px; height: 30px; }
+    .document-status { font-size: 11px; line-height: 1.5; color: var(--green); }
+    .inspector-close, .details-toggle { display: none; }
     @media (max-width: 1000px) {
+      .details-toggle { display: inline-flex; position: absolute; right: 12px; top: 43px; z-index: 4; }
+      .inspector.open { display: block; position: absolute; right: 0; top: 62px; bottom: 0; width: min(340px, 100vw); z-index: 8; box-shadow: -8px 0 30px rgba(31,42,34,.12); }
+      .inspector-close { display: inline-flex; }
+
       .workspace { grid-template-columns: 196px minmax(0, 1fr); }
       .inspector { display: none; }
       .search { width: 150px; }
@@ -115,6 +132,7 @@
     @media (max-width: 680px) {
       body { min-width: 360px; }
       .app { grid-template-rows: 56px 1fr; }
+      .inspector.open { top: 56px; }
       .topbar { gap: 11px; padding: 0 12px; }
       .brand { font-size: 16px; }
       .brand-mark { width: 24px; height: 24px; }
@@ -183,6 +201,7 @@
 
       <section class="canvas-area" id="canvasArea" aria-label="Vùng sơ đồ tư duy">
         <div class="canvas-top"><span class="crumb-dot"></span><strong>SƠ ĐỒ TƯ DUY</strong><span>/</span><span id="canvasTitle">Kế hoạch dự án</span></div>
+        <button class="button details-toggle" id="detailsToggle" aria-controls="inspector" aria-expanded="false">Chi tiết / Tài liệu</button>
         <div class="stage" id="stage"><svg class="links" id="links" viewBox="0 0 2400 1600" aria-hidden="true"></svg><div id="nodes"></div></div>
         <div class="zoom-controls">
           <button class="button icon" id="zoomOut" aria-label="Thu nhỏ" title="Thu nhỏ"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
@@ -194,7 +213,7 @@
       </section>
 
       <aside class="inspector" id="inspector">
-        <div class="inspector-heading">Chi tiết chủ đề <span id="nodeCount">0 CHỦ ĐỀ</span></div>
+        <div class="inspector-heading">Chi tiết chủ đề <span id="nodeCount">0 CHỦ ĐỀ</span><button class="button icon inspector-close" id="closeInspector" aria-label="Đóng chi tiết">×</button></div>
         <div id="inspectorContent"></div>
       </aside>
     </div>
@@ -234,6 +253,11 @@
       let toastTimer;
       let drag = null;
       let editingId = null;
+      let documentRenderVersion = 0;
+      const uploadingNodes = new Set();
+      const documentUrls = new Set();
+      let documentDbPromise;
+
 
       function loadMap() {
         try {
@@ -257,8 +281,13 @@
         el('saveState').textContent = 'Đang lưu';
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch (_) { /* Keep editing if storage is unavailable. */ }
-          el('saveState').textContent = 'Đã lưu';
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+            el('saveState').textContent = 'Đã lưu trên thiết bị';
+          } catch (_) {
+            el('saveState').textContent = 'Lưu thất bại';
+            showToast('Không lưu được sơ đồ. Hãy xuất JSON và tải tài liệu xuống để sao lưu.');
+          }
         }, 250);
       }
 
@@ -300,6 +329,7 @@
           item.style.setProperty('--node-color', node.color || COLORS[0]);
           item.innerHTML = `<span class="node-dot"></span><span class="node-text"></span>`;
           item.querySelector('.node-text').textContent = visibleText(node.text);
+          updateDocumentBadge(item, node);
           item.addEventListener('pointerdown', startNodeDrag);
           item.addEventListener('click', () => selectNode(node.id));
           item.addEventListener('dblclick', event => { event.stopPropagation(); beginEdit(node.id); });
@@ -344,7 +374,129 @@
         }));
         el('inspectorChild').addEventListener('click', addChild);
         el('inspectorDelete').addEventListener('click', deleteSelected);
+        renderDocuments(node);
       }
+
+
+      function documentsOf(node) { return Array.isArray(node?.documents) ? node.documents : []; }
+      function updateDocumentBadge(item, node) {
+        item.querySelector('.document-badge')?.remove();
+        const count = documentsOf(node).length;
+        if (!count) return;
+        const badge = document.createElement('span');
+        badge.className = 'document-badge';
+        badge.textContent = '📎 Có tài liệu (' + count + ')';
+        let copy = item.querySelector('.node-copy');
+        if (!copy) {
+          copy = document.createElement('span'); copy.className = 'node-copy';
+          const text = item.querySelector('.node-text');
+          if (!text) return;
+          text.replaceWith(copy); copy.append(text);
+        }
+        copy.append(badge);
+      }
+      function openDocumentDb() {
+        if (!documentDbPromise) documentDbPromise = new Promise((resolve, reject) => {
+          const request = indexedDB.open('mach-documents-v1', 1);
+          request.onupgradeneeded = () => request.result.createObjectStore('files', { keyPath: 'id' });
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        }).catch(error => { documentDbPromise = null; throw error; });
+        return documentDbPromise;
+      }
+      async function documentRecord(mode, id, value) {
+        const db = await openDocumentDb();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction('files', mode);
+          const request = value ? tx.objectStore('files').put(value) : tx.objectStore('files').get(id);
+          let result;
+          request.onsuccess = () => { result = request.result; };
+          tx.oncomplete = () => resolve(result);
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error('Storage aborted'));
+        });
+      }
+      function fileSize(bytes) {
+        return bytes < 1024 ? bytes + ' B' : bytes < 1048576 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / 1048576).toFixed(1) + ' MB';
+      }
+      async function renderDocuments(node) {
+        const version = ++documentRenderVersion;
+        const section = document.createElement('section'); section.className = 'document-section';
+        section.innerHTML = '<h3 class="field-label">Tài liệu của chủ đề</h3><p class="document-note">Tệp được lưu trong trình duyệt trên thiết bị này. Xuất JSON/SVG không chứa tệp tài liệu; hãy tải tệp xuống để sao lưu.</p><button class="button document-upload">＋ Tải tài liệu lên</button><input type="file" multiple hidden><p class="document-status" role="status"></p><div class="document-list"></div>';
+        el('inspectorContent').append(section);
+        const input = section.querySelector('input');
+        const upload = section.querySelector('.document-upload');
+        upload.disabled = uploadingNodes.has(node.id);
+        upload.addEventListener('click', () => input.click());
+        input.addEventListener('change', async () => {
+          const files = Array.from(input.files); input.value = '';
+          if (!files.length || uploadingNodes.has(node.id)) return;
+          uploadingNodes.add(node.id); upload.disabled = true;
+          const status = section.querySelector('.document-status'); status.textContent = 'Đang lưu tài liệu…';
+          let failed = 0, saved = 0;
+          for (const file of files) {
+            try {
+              const id = crypto.randomUUID();
+              await documentRecord('readwrite', id, { id, file });
+              // Re-resolve after asynchronous writes: undo, import or deletion can replace the map.
+              const current = nodeById(node.id);
+              if (current !== node) { failed += files.length - saved - failed; break; }
+              snapshot();
+              node.documents = [...documentsOf(node), { id, name: file.name, size: file.size, type: file.type, uploadedAt: new Date().toISOString() }];
+              snapshot(); saved++;
+            } catch (_) { failed++; }
+          }
+          uploadingNodes.delete(node.id);
+          if (saved) { scheduleSave(); render(); }
+          else if (section.isConnected) { upload.disabled = false; }
+          showToast(failed ? 'Đã lưu ' + saved + ' tệp; ' + failed + ' tệp chưa lưu. Kiểm tra dung lượng trình duyệt.' : 'Đã tải lên ' + saved + ' tài liệu');
+        });
+        const list = section.querySelector('.document-list');
+        if (!documentsOf(node).length) {
+          const empty = document.createElement('p'); empty.className = 'document-note';
+          empty.textContent = 'Chưa có tài liệu. Tải tệp lên để lưu cùng chủ đề này.'; list.append(empty);
+        }
+        for (const doc of documentsOf(node)) {
+          const row = document.createElement('div'); row.className = 'document-item';
+          const name = document.createElement('strong'); name.textContent = doc.name;
+          const meta = document.createElement('div'); meta.className = 'document-meta';
+          meta.textContent = fileSize(Number(doc.size) || 0);
+          const actions = document.createElement('div'); actions.className = 'document-actions';
+          const downloadButton = document.createElement('button'); downloadButton.className = 'button'; downloadButton.textContent = 'Tải xuống'; downloadButton.disabled = true;
+          const openButton = document.createElement('button'); openButton.className = 'button'; openButton.textContent = 'Xem'; openButton.disabled = true;
+          const remove = document.createElement('button'); remove.className = 'button'; remove.textContent = 'Gỡ';
+          remove.setAttribute('aria-label', 'Gỡ tài liệu ' + doc.name);
+          remove.addEventListener('click', () => {
+            snapshot(); node.documents = documentsOf(node).filter(item => item.id !== doc.id);
+            snapshot(); scheduleSave(); render(); showToast('Đã gỡ tài liệu. Có thể Hoàn tác.');
+          });
+          actions.append(openButton, downloadButton, remove); row.append(name, meta, actions); list.append(row);
+          try {
+            const record = await documentRecord('readonly', doc.id);
+            if (version !== documentRenderVersion || !section.isConnected) return;
+            if (!record?.file) { meta.textContent += ' · Tệp không có trên thiết bị này'; continue; }
+            downloadButton.disabled = false;
+            downloadButton.addEventListener('click', () => download(record.file, doc.name));
+            // Only render passive formats; active HTML/SVG files are download-only.
+            const viewable = record.file.type === 'application/pdf' || ['image/png','image/jpeg','image/gif','image/webp'].includes(record.file.type);
+            if (viewable) {
+              openButton.disabled = false;
+              openButton.addEventListener('click', () => {
+                const url = URL.createObjectURL(record.file); documentUrls.add(url);
+                window.open(url, '_blank', 'noopener,noreferrer');
+              });
+            } else { openButton.remove(); }
+          } catch (_) { meta.textContent += ' · Không đọc được tệp từ trình duyệt'; }
+        }
+      }
+      el('detailsToggle').addEventListener('click', () => {
+        el('inspector').classList.toggle('open');
+        el('detailsToggle').setAttribute('aria-expanded', String(el('inspector').classList.contains('open')));
+      });
+      el('closeInspector').addEventListener('click', () => {
+        el('inspector').classList.remove('open'); el('detailsToggle').setAttribute('aria-expanded', 'false');
+      });
+      window.addEventListener('pagehide', () => { documentUrls.forEach(url => URL.revokeObjectURL(url)); });
 
       function addChild() {
         const parent = nodeById(selectedId);
@@ -501,7 +653,8 @@
 
       function download(blob, filename) {
         const url = URL.createObjectURL(blob), link = document.createElement('a');
-        link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+        link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
       }
 
       function safeFilename(value) { return (value || 'so-do-tu-duy').replace(/[\\/:*?"<>|]/g, '-').trim() || 'so-do-tu-duy'; }
@@ -530,7 +683,7 @@
         event.preventDefault(); zoom = Math.max(.45, Math.min(1.8, zoom + (event.deltaY < 0 ? .08 : -.08))); applyTransform();
       }, { passive: false });
       el('canvasArea').addEventListener('pointerdown', event => {
-        if (event.target.closest('.mind-node, .zoom-controls, .canvas-top')) return;
+        if (event.target.closest('.mind-node, .zoom-controls, .canvas-top, .details-toggle')) return;
         drag = { type: 'pan', startX: event.clientX, startY: event.clientY, x: pan.x, y: pan.y };
         el('canvasArea').setPointerCapture(event.pointerId);
       });
@@ -569,7 +722,7 @@
         const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); return; }
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }
-        if (typing) return;
+        if (typing || document.activeElement?.matches('button, a, select, [contenteditable="true"]')) return;
         if (event.key === 'Tab') { event.preventDefault(); addChild(); }
         if (event.key === 'Enter') { event.preventDefault(); addSibling(); }
         if (event.key === 'F2') { event.preventDefault(); beginEdit(selectedId); }
