@@ -107,7 +107,37 @@
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
     .file-input { display: none; }
 
+    .topbar { z-index: 10; }
+    .leftbar { overflow-y: auto; }
+    .side-note { position: static; margin: 28px 8px 0; }
+    .export-wrap { position: relative; }
+    .export-menu { position: absolute; top: 42px; right: 0; width: 220px; padding: 8px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); z-index: 20; }
+    .export-menu .button { width: 100%; justify-content: flex-start; border: 0; margin-bottom: 3px; }
+    .export-menu p { font-size: 11px; color: #647066; line-height: 1.5; margin: 8px; }
+    .branch-toggle { position: absolute; right: -15px; top: -13px; width: 28px; height: 28px; border: 1px solid #cad8ca; border-radius: 50%; background: white; color: var(--green); cursor: pointer; font-size: 12px; }
+    .notes-field { min-height: 100px; }
+    .inspector-focus { margin-bottom: 18px; }
+    .document-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 5px; color: var(--green); font-size: 10px; font-weight: 600; }
+    .mind-node.root .document-badge { color: #e4f1e5; }
+    .node-copy { min-width: 0; }
+    .document-section { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 4px; }
+    .document-note { color: #647066; font-size: 11px; line-height: 1.6; }
+    .document-upload { width: 100%; margin: 8px 0; }
+    .document-list { display: grid; gap: 10px; }
+    .document-item { padding: 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; overflow-wrap: anywhere; }
+    .document-meta { color: #647066; font-size: 10px; margin: 5px 0 8px; }
+    .document-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .document-actions .button { font-size: 11px; height: 30px; }
+    .document-status { font-size: 11px; line-height: 1.5; color: var(--green); }
+    .inspector-close, .details-toggle { display: none; }
     @media (max-width: 1000px) {
+      .saved-state, .top-divider { display: none; }
+      .topbar { gap: 12px; padding: 0 12px; }
+      .doc-title { width: 140px; }
+      .details-toggle { display: inline-flex; position: absolute; right: 12px; top: 43px; z-index: 4; }
+      .inspector.open { display: block; position: absolute; right: 0; top: 62px; bottom: 0; width: min(340px, 100vw); z-index: 8; box-shadow: -8px 0 30px rgba(31,42,34,.12); }
+      .inspector-close { display: inline-flex; }
+
       .workspace { grid-template-columns: 196px minmax(0, 1fr); }
       .inspector { display: none; }
       .search { width: 150px; }
@@ -115,6 +145,7 @@
     @media (max-width: 680px) {
       body { min-width: 360px; }
       .app { grid-template-rows: 56px 1fr; }
+      .inspector.open { top: 56px; }
       .topbar { gap: 11px; padding: 0 12px; }
       .brand { font-size: 16px; }
       .brand-mark { width: 24px; height: 24px; }
@@ -149,12 +180,16 @@
       <button class="button" id="importButton" title="Mở sơ đồ JSON">
         <svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 14v5h14v-5"/></svg><span class="export-label">Mở</span>
       </button>
-      <button class="button" id="exportJsonButton" title="Lưu sơ đồ dạng JSON">
-        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/><path d="M8 7h1m6 0h1"/></svg><span class="export-label">JSON</span>
-      </button>
-      <button class="button primary" id="exportButton" title="Xuất sơ đồ dạng SVG">
-        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg><span class="export-label">Xuất</span>
-      </button>
+      <div class="export-wrap">
+        <button class="button primary" id="exportButton" aria-expanded="false" aria-controls="exportMenu">Xuất ▾</button>
+        <div class="export-menu" id="exportMenu" hidden>
+          <button class="button" data-export="png">PNG · Hình ảnh</button>
+          <button class="button" data-export="pdf">PDF · Tài liệu</button>
+          <button class="button" data-export="svg">SVG · Vector</button>
+          <button class="button" data-export="json">JSON · Sơ đồ & ghi chú</button>
+          <p>Tệp đính kèm không nằm trong bản xuất.</p>
+        </div>
+      </div>
       <input class="file-input" id="fileInput" type="file" accept="application/json,.json">
     </header>
 
@@ -172,6 +207,13 @@
           </div>
         </section>
         <section class="side-section">
+          <div class="side-label">Sắp xếp</div>
+          <div class="side-tools">
+            <button class="tool" id="autoLayout" aria-label="Tự động sắp xếp" title="Tự động sắp xếp">⌘ <span>Tự động sắp xếp</span></button>
+            <button class="tool" id="expandAll" aria-label="Mở rộng tất cả" title="Mở rộng tất cả">⊞ <span>Mở rộng tất cả</span></button>
+          </div>
+        </section>
+        <section class="side-section">
           <div class="side-label">Lịch sử</div>
           <div class="side-tools">
             <button class="tool" id="undoButton"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2"/></svg><span>Hoàn tác</span><span class="key">Ctrl Z</span></button>
@@ -183,6 +225,7 @@
 
       <section class="canvas-area" id="canvasArea" aria-label="Vùng sơ đồ tư duy">
         <div class="canvas-top"><span class="crumb-dot"></span><strong>SƠ ĐỒ TƯ DUY</strong><span>/</span><span id="canvasTitle">Kế hoạch dự án</span></div>
+        <button class="button details-toggle" id="detailsToggle" aria-controls="inspector" aria-expanded="false">Chi tiết / Tài liệu</button>
         <div class="stage" id="stage"><svg class="links" id="links" viewBox="0 0 2400 1600" aria-hidden="true"></svg><div id="nodes"></div></div>
         <div class="zoom-controls">
           <button class="button icon" id="zoomOut" aria-label="Thu nhỏ" title="Thu nhỏ"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
@@ -194,7 +237,7 @@
       </section>
 
       <aside class="inspector" id="inspector">
-        <div class="inspector-heading">Chi tiết chủ đề <span id="nodeCount">0 CHỦ ĐỀ</span></div>
+        <div class="inspector-heading">Chi tiết chủ đề <span id="nodeCount">0 CHỦ ĐỀ</span><button class="button icon inspector-close" id="closeInspector" aria-label="Đóng chi tiết">×</button></div>
         <div id="inspectorContent"></div>
       </aside>
     </div>
@@ -234,6 +277,11 @@
       let toastTimer;
       let drag = null;
       let editingId = null;
+      let documentRenderVersion = 0;
+      const uploadingNodes = new Set();
+      const documentUrls = new Set();
+      let documentDbPromise;
+
 
       function loadMap() {
         try {
@@ -257,8 +305,13 @@
         el('saveState').textContent = 'Đang lưu';
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch (_) { /* Keep editing if storage is unavailable. */ }
-          el('saveState').textContent = 'Đã lưu';
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+            el('saveState').textContent = 'Đã lưu trên thiết bị';
+          } catch (_) {
+            el('saveState').textContent = 'Lưu thất bại';
+            showToast('Không lưu được sơ đồ. Hãy xuất JSON và tải tài liệu xuống để sao lưu.');
+          }
         }, 250);
       }
 
@@ -266,9 +319,62 @@
       function nodeById(id) { return map.nodes.find(node => node.id === id); }
       function visibleText(text) { return text || 'Chủ đề mới'; }
 
+      function visibleNodes() {
+        return map.nodes.filter(node => {
+          const seen = new Set([node.id]); let parent = node.parent;
+          while (parent) {
+            if (seen.has(parent)) return false;
+            seen.add(parent);
+            const ancestor = nodeById(parent);
+            if (!ancestor || ancestor.collapsed) return false;
+            parent = ancestor.parent;
+          }
+          return true;
+        });
+      }
+      function toggleBranch(id) {
+        const node = nodeById(id); if (!node || !childrenOf(id).length) return;
+        snapshot(); node.collapsed = !node.collapsed;
+        snapshot(); scheduleSave(); render();
+      }
+      function autoLayout() {
+        snapshot();
+        const root = nodeById('root'); if (!root) return;
+        root.x = 0; root.y = 0;
+        const spans = new Map();
+        function span(node, seen = new Set()) {
+          if (seen.has(node.id)) return 120;
+          const next = new Set(seen); next.add(node.id);
+          const children = childrenOf(node.id);
+          const size = Math.max(120, children.reduce((total, child) => total + span(child, next), 0));
+          spans.set(node.id, size); return size;
+        }
+        span(root);
+        function place(node, side, depth, center, seen = new Set()) {
+          if (seen.has(node.id)) return;
+          const next = new Set(seen); next.add(node.id);
+          node.x = side * depth * 280; node.y = center;
+          const children = childrenOf(node.id);
+          let cursor = center - (spans.get(node.id) || 120) / 2;
+          for (const child of children) {
+            const height = spans.get(child.id) || 120;
+            place(child, side, depth + 1, cursor + height / 2, next); cursor += height;
+          }
+        }
+        const branches = childrenOf('root');
+        for (const side of [-1, 1]) {
+          const group = branches.filter((_, index) => (index % 2 ? -1 : 1) === side);
+          let cursor = -group.reduce((total, node) => total + (spans.get(node.id) || 120), 0) / 2;
+          for (const branch of group) {
+            const height = spans.get(branch.id) || 120;
+            place(branch, side, 1, cursor + height / 2); cursor += height;
+          }
+        }
+        snapshot(); scheduleSave(); render(); fitMap(); showToast('Đã tự động sắp xếp sơ đồ');
+      }
       function renderLinks() {
         const links = [];
-        for (const node of map.nodes) {
+        for (const node of visibleNodes()) {
           if (node.parent) {
             const parent = nodeById(node.parent);
             if (parent) {
@@ -290,7 +396,7 @@
         el('sideTitle').textContent = map.title;
         el('canvasTitle').textContent = map.title;
         el('nodes').replaceChildren();
-        for (const node of map.nodes) {
+        for (const node of visibleNodes()) {
           const item = document.createElement('div');
           item.className = `mind-node${node.id === 'root' ? ' root' : ''}${selectedId === node.id ? ' selected' : ''}`;
           item.dataset.id = node.id;
@@ -300,8 +406,17 @@
           item.style.setProperty('--node-color', node.color || COLORS[0]);
           item.innerHTML = `<span class="node-dot"></span><span class="node-text"></span>`;
           item.querySelector('.node-text').textContent = visibleText(node.text);
+          updateDocumentBadge(item, node);
+          if (childrenOf(node.id).length) {
+            const toggle = document.createElement('button'); toggle.className = 'branch-toggle';
+            toggle.textContent = node.collapsed ? '+' : '−';
+            toggle.setAttribute('aria-label', (node.collapsed ? 'Mở rộng nhánh ' : 'Thu gọn nhánh ') + visibleText(node.text));
+            toggle.setAttribute('aria-expanded', String(!node.collapsed));
+            toggle.addEventListener('pointerdown', event => event.stopPropagation());
+            toggle.addEventListener('click', event => { event.stopPropagation(); toggleBranch(node.id); });
+            item.append(toggle);
+          }
           item.addEventListener('pointerdown', startNodeDrag);
-          item.addEventListener('click', () => selectNode(node.id));
           item.addEventListener('dblclick', event => { event.stopPropagation(); beginEdit(node.id); });
           el('nodes').append(item);
         }
@@ -315,6 +430,8 @@
 
       function selectNode(id) {
         selectedId = id;
+        el('inspector').classList.add('open');
+        el('detailsToggle').setAttribute('aria-expanded', 'true');
         render();
       }
 
@@ -344,12 +461,148 @@
         }));
         el('inspectorChild').addEventListener('click', addChild);
         el('inspectorDelete').addEventListener('click', deleteSelected);
+        const focus = document.createElement('div'); focus.className = 'inspector-focus';
+        const notesLabel = document.createElement('label'); notesLabel.className = 'field-label';
+        notesLabel.htmlFor = 'topicNotes'; notesLabel.textContent = 'Ghi chú của chủ đề';
+        const notes = document.createElement('textarea'); notes.id = 'topicNotes';
+        notes.className = 'topic-field notes-field'; notes.placeholder = 'Viết ghi chú, ý tưởng hoặc nội dung cần nhớ…';
+        notes.value = node.notes || '';
+        notes.addEventListener('input', () => { node.notes = notes.value; scheduleSave(); });
+        notes.addEventListener('change', snapshot);
+        focus.append(notesLabel, notes);
+        el('inspectorContent').prepend(focus);
+        renderDocuments(node);
+        const section = el('inspectorContent').querySelector('.document-section');
+        section.style.marginTop = '0';
+        focus.append(section);
       }
+
+
+      function documentsOf(node) { return Array.isArray(node?.documents) ? node.documents : []; }
+      function updateDocumentBadge(item, node) {
+        item.querySelector('.document-badge')?.remove();
+        const count = documentsOf(node).length;
+        if (!count) return;
+        const badge = document.createElement('span');
+        badge.className = 'document-badge';
+        badge.textContent = '📎 Có tài liệu (' + count + ')';
+        let copy = item.querySelector('.node-copy');
+        if (!copy) {
+          copy = document.createElement('span'); copy.className = 'node-copy';
+          const text = item.querySelector('.node-text');
+          if (!text) return;
+          text.replaceWith(copy); copy.append(text);
+        }
+        copy.append(badge);
+      }
+      function openDocumentDb() {
+        if (!documentDbPromise) documentDbPromise = new Promise((resolve, reject) => {
+          const request = indexedDB.open('mach-documents-v1', 1);
+          request.onupgradeneeded = () => request.result.createObjectStore('files', { keyPath: 'id' });
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        }).catch(error => { documentDbPromise = null; throw error; });
+        return documentDbPromise;
+      }
+      async function documentRecord(mode, id, value) {
+        const db = await openDocumentDb();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction('files', mode);
+          const request = value ? tx.objectStore('files').put(value) : tx.objectStore('files').get(id);
+          let result;
+          request.onsuccess = () => { result = request.result; };
+          tx.oncomplete = () => resolve(result);
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error('Storage aborted'));
+        });
+      }
+      function fileSize(bytes) {
+        return bytes < 1024 ? bytes + ' B' : bytes < 1048576 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / 1048576).toFixed(1) + ' MB';
+      }
+      async function renderDocuments(node) {
+        const version = ++documentRenderVersion;
+        const section = document.createElement('section'); section.className = 'document-section';
+        section.innerHTML = '<h3 class="field-label">Tài liệu của chủ đề</h3><p class="document-note">Tệp được lưu trong trình duyệt trên thiết bị này. Xuất JSON/SVG không chứa tệp tài liệu; hãy tải tệp xuống để sao lưu.</p><button class="button document-upload">＋ Tải tài liệu lên</button><input type="file" multiple hidden><p class="document-status" role="status"></p><div class="document-list"></div>';
+        el('inspectorContent').append(section);
+        const input = section.querySelector('input');
+        const upload = section.querySelector('.document-upload');
+        upload.disabled = uploadingNodes.has(node.id);
+        upload.addEventListener('click', () => input.click());
+        input.addEventListener('change', async () => {
+          const files = Array.from(input.files); input.value = '';
+          if (!files.length || uploadingNodes.has(node.id)) return;
+          uploadingNodes.add(node.id); upload.disabled = true;
+          const status = section.querySelector('.document-status'); status.textContent = 'Đang lưu tài liệu…';
+          let failed = 0, saved = 0;
+          for (const file of files) {
+            try {
+              const id = crypto.randomUUID();
+              await documentRecord('readwrite', id, { id, file });
+              // Re-resolve after asynchronous writes: undo, import or deletion can replace the map.
+              const current = nodeById(node.id);
+              if (current !== node) { failed += files.length - saved - failed; break; }
+              snapshot();
+              node.documents = [...documentsOf(node), { id, name: file.name, size: file.size, type: file.type, uploadedAt: new Date().toISOString() }];
+              snapshot(); saved++;
+            } catch (_) { failed++; }
+          }
+          uploadingNodes.delete(node.id);
+          if (saved) { scheduleSave(); render(); }
+          else if (section.isConnected) { upload.disabled = false; }
+          showToast(failed ? 'Đã lưu ' + saved + ' tệp; ' + failed + ' tệp chưa lưu. Kiểm tra dung lượng trình duyệt.' : 'Đã tải lên ' + saved + ' tài liệu');
+        });
+        const list = section.querySelector('.document-list');
+        if (!documentsOf(node).length) {
+          const empty = document.createElement('p'); empty.className = 'document-note';
+          empty.textContent = 'Chưa có tài liệu. Tải tệp lên để lưu cùng chủ đề này.'; list.append(empty);
+        }
+        for (const doc of documentsOf(node)) {
+          const row = document.createElement('div'); row.className = 'document-item';
+          const name = document.createElement('strong'); name.textContent = doc.name;
+          const meta = document.createElement('div'); meta.className = 'document-meta';
+          meta.textContent = fileSize(Number(doc.size) || 0);
+          const actions = document.createElement('div'); actions.className = 'document-actions';
+          const downloadButton = document.createElement('button'); downloadButton.className = 'button'; downloadButton.textContent = 'Tải xuống'; downloadButton.disabled = true;
+          const openButton = document.createElement('button'); openButton.className = 'button'; openButton.textContent = 'Xem'; openButton.disabled = true;
+          const remove = document.createElement('button'); remove.className = 'button'; remove.textContent = 'Gỡ';
+          remove.setAttribute('aria-label', 'Gỡ tài liệu ' + doc.name);
+          remove.addEventListener('click', () => {
+            snapshot(); node.documents = documentsOf(node).filter(item => item.id !== doc.id);
+            snapshot(); scheduleSave(); render(); showToast('Đã gỡ tài liệu. Có thể Hoàn tác.');
+          });
+          actions.append(openButton, downloadButton, remove); row.append(name, meta, actions); list.append(row);
+          try {
+            const record = await documentRecord('readonly', doc.id);
+            if (version !== documentRenderVersion || !section.isConnected) return;
+            if (!record?.file) { meta.textContent += ' · Tệp không có trên thiết bị này'; continue; }
+            downloadButton.disabled = false;
+            downloadButton.addEventListener('click', () => download(record.file, doc.name));
+            // Only render passive formats; active HTML/SVG files are download-only.
+            const viewable = record.file.type === 'application/pdf' || ['image/png','image/jpeg','image/gif','image/webp'].includes(record.file.type);
+            if (viewable) {
+              openButton.disabled = false;
+              openButton.addEventListener('click', () => {
+                const url = URL.createObjectURL(record.file); documentUrls.add(url);
+                window.open(url, '_blank', 'noopener,noreferrer');
+              });
+            } else { openButton.remove(); }
+          } catch (_) { meta.textContent += ' · Không đọc được tệp từ trình duyệt'; }
+        }
+      }
+      el('detailsToggle').addEventListener('click', () => {
+        el('inspector').classList.toggle('open');
+        el('detailsToggle').setAttribute('aria-expanded', String(el('inspector').classList.contains('open')));
+      });
+      el('closeInspector').addEventListener('click', () => {
+        el('inspector').classList.remove('open'); el('detailsToggle').setAttribute('aria-expanded', 'false');
+      });
+      window.addEventListener('pagehide', () => { documentUrls.forEach(url => URL.revokeObjectURL(url)); });
 
       function addChild() {
         const parent = nodeById(selectedId);
         if (!parent) return;
         snapshot();
+        parent.collapsed = false;
         const siblings = childrenOf(parent.id);
         const direction = parent.id === 'root' ? (siblings.length % 2 === 0 ? 1 : -1) : (parent.x >= nodeById(parent.parent)?.x ? 1 : -1);
         const child = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: parent.id === 'root' ? COLORS[siblings.length % COLORS.length] : parent.color, x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y + (siblings.length ? (siblings.length % 2 ? 100 : -100) : 0) };
@@ -419,7 +672,10 @@
         if (event.target.tagName === 'INPUT') return;
         const node = nodeById(event.currentTarget.dataset.id);
         if (!node) return;
-        selectNode(node.id);
+        if (event.target.closest('.branch-toggle')) return;
+        selectedId = node.id;
+        document.querySelectorAll('.mind-node').forEach(item => item.classList.toggle('selected', item.dataset.id === node.id));
+        renderInspector();
         drag = { type: 'node', id: node.id, startX: event.clientX, startY: event.clientY, x: node.x, y: node.y, moved: false };
         el('canvasArea').setPointerCapture(event.pointerId);
       }
@@ -444,11 +700,11 @@
       }
 
       function fitMap() {
-        const bounds = map.nodes.reduce((box, node) => ({ minX: Math.min(box.minX, node.x), maxX: Math.max(box.maxX, node.x), minY: Math.min(box.minY, node.y), maxY: Math.max(box.maxY, node.y) }), { minX: 0, maxX: 0, minY: 0, maxY: 0 });
+        const bounds = visibleNodes().reduce((box, node) => ({ minX: Math.min(box.minX, node.x), maxX: Math.max(box.maxX, node.x), minY: Math.min(box.minY, node.y), maxY: Math.max(box.maxY, node.y) }), { minX: 0, maxX: 0, minY: 0, maxY: 0 });
         const width = Math.max(1, bounds.maxX - bounds.minX + 250);
         const height = Math.max(1, bounds.maxY - bounds.minY + 150);
         const area = el('canvasArea');
-        zoom = Math.max(.45, Math.min(1.8, (area.clientWidth - 48) / width, (area.clientHeight - 100) / height));
+        zoom = Math.max(.08, Math.min(1.8, (area.clientWidth - 48) / width, (area.clientHeight - 100) / height));
         pan.x = -((bounds.minX + bounds.maxX) / 2) * zoom;
         pan.y = -((bounds.minY + bounds.maxY) / 2) * zoom;
         applyTransform();
@@ -473,25 +729,83 @@
         historyIndex++; map = JSON.parse(history[historyIndex]); selectedId = nodeById(selectedId) ? selectedId : 'root'; scheduleSave(); render();
       }
 
-      function exportSvg() {
-        const bounds = map.nodes.reduce((box, node) => ({ minX: Math.min(box.minX, node.x), maxX: Math.max(box.maxX, node.x), minY: Math.min(box.minY, node.y), maxY: Math.max(box.maxY, node.y) }), { minX: 0, maxX: 0, minY: 0, maxY: 0 });
+      function makeSvg() {
+        const bounds = visibleNodes().reduce((box, node) => ({ minX: Math.min(box.minX, node.x), maxX: Math.max(box.maxX, node.x), minY: Math.min(box.minY, node.y), maxY: Math.max(box.maxY, node.y) }), { minX: 0, maxX: 0, minY: 0, maxY: 0 });
         const width = bounds.maxX - bounds.minX + 440, height = bounds.maxY - bounds.minY + 260;
         const offsetX = 220 - bounds.minX, offsetY = 130 - bounds.minY;
-        const paths = map.nodes.filter(node => node.parent).map(node => {
+        const paths = visibleNodes().filter(node => node.parent).map(node => {
           const parent = nodeById(node.parent), side = node.x >= parent.x ? 1 : -1;
           const x1 = offsetX + parent.x + side * 90, y1 = offsetY + parent.y;
           const x2 = offsetX + node.x - side * 75, y2 = offsetY + node.y;
           const curve = Math.max(38, Math.abs(x2 - x1) * .48);
           return `<path d="M ${x1} ${y1} C ${x1 + side * curve} ${y1}, ${x2 - side * curve} ${y2}, ${x2} ${y2}" fill="none" stroke="${escapeAttr(node.color)}" stroke-width="3" stroke-linecap="round"/>`;
         }).join('');
-        const boxes = map.nodes.map(node => {
+        const boxes = visibleNodes().map(node => {
           const x = offsetX + node.x, y = offsetY + node.y, root = node.id === 'root';
-          const fill = root ? '#2b5947' : '#ffffff', color = root ? '#ffffff' : '#202721', w = root ? 190 : 170, h = root ? 58 : 48;
-          return `<g><rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${root ? '#2b5947' : '#e1e6de'}"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="14" font-weight="600" fill="${color}">${escapeAttr(visibleText(node.text))}</text></g>`;
+          const fill = root ? '#2b5947' : '#ffffff', color = root ? '#ffffff' : '#202721', w = root ? 190 : 170;
+          const measure = document.createElement('canvas').getContext('2d'); measure.font = '600 14px Arial';
+          const lines = []; let line = '';
+          for (const char of visibleText(node.text)) {
+            if (char === '\n' || measure.measureText(line + char).width > w - 26) { lines.push(line); line = char === '\n' ? '' : char; }
+            else line += char;
+          }
+          lines.push(line);
+          const h = Math.max(root ? 58 : 48, lines.length * 18 + 24);
+          const text = lines.map((value, index) => `<tspan x="${x}" y="${y - (lines.length - 1) * 9 + 5 + index * 18}">${escapeAttr(value)}</tspan>`).join('');
+          return `<g><rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${root ? '#2b5947' : '#e1e6de'}"/><text text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="${color}">${text}</text></g>`;
         }).join('');
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="#f7f8f4"/>${paths}${boxes}</svg>`;
-        download(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `${safeFilename(map.title)}.svg`);
+        return { svg, width, height };
+      }
+      function exportSvg() {
+        download(new Blob([makeSvg().svg], { type: 'image/svg+xml;charset=utf-8' }), `${safeFilename(map.title)}.svg`);
         showToast('Đã xuất sơ đồ dạng SVG');
+      }
+
+
+      async function exportRaster(format) {
+        const scene = makeSvg();
+        const url = URL.createObjectURL(new Blob([scene.svg], { type: 'image/svg+xml' }));
+        try {
+          const image = new Image();
+          await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = url; });
+          const scale = Math.min(2, 4096 / Math.max(scene.width, scene.height), Math.sqrt(16000000 / (scene.width * scene.height)));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(scene.width * scale));
+          canvas.height = Math.max(1, Math.round(scene.height * scale));
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          if (format === 'png') {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (!blob) throw new Error('PNG failed');
+            download(blob, safeFilename(map.title) + '.png');
+          } else {
+            const bytes = Uint8Array.from(atob(canvas.toDataURL('image/jpeg', .94).split(',')[1]), char => char.charCodeAt(0));
+            download(makePdf(bytes, canvas.width, canvas.height), safeFilename(map.title) + '.pdf');
+          }
+          showToast('Đã xuất ' + format.toUpperCase());
+        } finally { URL.revokeObjectURL(url); }
+      }
+      function makePdf(jpeg, width, height) {
+        const encoder = new TextEncoder(), chunks = [], offsets = [0]; let length = 0;
+        const add = value => { const bytes = typeof value === 'string' ? encoder.encode(value) : value; chunks.push(bytes); length += bytes.length; };
+        const landscape = width >= height, pageW = landscape ? 842 : 595, pageH = landscape ? 595 : 842;
+        const scale = Math.min((pageW - 48) / width, (pageH - 48) / height);
+        const w = width * scale, h = height * scale;
+        const stream = 'q ' + w.toFixed(3) + ' 0 0 ' + h.toFixed(3) + ' ' + ((pageW-w)/2).toFixed(3) + ' ' + ((pageH-h)/2).toFixed(3) + ' cm /Im0 Do Q';
+        add('%PDF-1.4\n');
+        function object(id, body) { offsets[id] = length; add(id + ' 0 obj\n' + body + '\nendobj\n'); }
+        object(1, '<< /Type /Catalog /Pages 2 0 R >>');
+        object(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+        object(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pageW + ' ' + pageH + '] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+        offsets[4] = length;
+        add('4 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + width + ' /Height ' + height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n');
+        add(jpeg); add('\nendstream\nendobj\n');
+        object(5, '<< /Length ' + encoder.encode(stream).length + ' >>\nstream\n' + stream + '\nendstream');
+        const xref = length;
+        add('xref\n0 6\n0000000000 65535 f \n');
+        for (let i = 1; i <= 5; i++) add(String(offsets[i]).padStart(10, '0') + ' 00000 n \n');
+        add('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF');
+        return new Blob(chunks, { type: 'application/pdf' });
       }
 
       function exportJson() {
@@ -501,7 +815,8 @@
 
       function download(blob, filename) {
         const url = URL.createObjectURL(blob), link = document.createElement('a');
-        link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+        link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
       }
 
       function safeFilename(value) { return (value || 'so-do-tu-duy').replace(/[\\/:*?"<>|]/g, '-').trim() || 'so-do-tu-duy'; }
@@ -520,17 +835,34 @@
       el('deleteNode').addEventListener('click', deleteSelected);
       el('undoButton').addEventListener('click', undo);
       el('redoButton').addEventListener('click', redo);
-      el('exportButton').addEventListener('click', exportSvg);
-      el('exportJsonButton').addEventListener('click', exportJson);
+      el('autoLayout').addEventListener('click', autoLayout);
+      el('expandAll').addEventListener('click', () => {
+        snapshot(); map.nodes.forEach(node => { node.collapsed = false; });
+        snapshot(); scheduleSave(); render(); fitMap();
+      });
+      function closeExportMenu() { el('exportMenu').hidden = true; el('exportButton').setAttribute('aria-expanded', 'false'); }
+      el('exportButton').addEventListener('click', () => {
+        el('exportMenu').hidden = !el('exportMenu').hidden;
+        el('exportButton').setAttribute('aria-expanded', String(!el('exportMenu').hidden));
+      });
+      document.addEventListener('click', event => { if (!event.target.closest('.export-wrap')) closeExportMenu(); });
+      document.querySelectorAll('[data-export]').forEach(button => button.addEventListener('click', async () => {
+        closeExportMenu();
+        try {
+          if (button.dataset.export === 'json') exportJson();
+          else if (button.dataset.export === 'svg') exportSvg();
+          else await exportRaster(button.dataset.export);
+        } catch (_) { showToast('Không xuất được tệp. Hãy thử SVG hoặc JSON.'); }
+      }));
       el('zoomIn').addEventListener('click', () => { zoom = Math.min(1.8, zoom + .1); applyTransform(); });
-      el('zoomOut').addEventListener('click', () => { zoom = Math.max(.45, zoom - .1); applyTransform(); });
+      el('zoomOut').addEventListener('click', () => { zoom = Math.max(.08, zoom - .1); applyTransform(); });
       el('fitButton').addEventListener('click', fitMap);
       el('canvasArea').addEventListener('wheel', event => {
         if (!event.ctrlKey && !event.metaKey) return;
-        event.preventDefault(); zoom = Math.max(.45, Math.min(1.8, zoom + (event.deltaY < 0 ? .08 : -.08))); applyTransform();
+        event.preventDefault(); zoom = Math.max(.08, Math.min(1.8, zoom + (event.deltaY < 0 ? .08 : -.08))); applyTransform();
       }, { passive: false });
       el('canvasArea').addEventListener('pointerdown', event => {
-        if (event.target.closest('.mind-node, .zoom-controls, .canvas-top')) return;
+        if (event.target.closest('.mind-node, .zoom-controls, .canvas-top, .details-toggle')) return;
         drag = { type: 'pan', startX: event.clientX, startY: event.clientY, x: pan.x, y: pan.y };
         el('canvasArea').setPointerCapture(event.pointerId);
       });
@@ -541,6 +873,10 @@
       });
       el('canvasArea').addEventListener('pointerup', () => {
         if (drag?.type === 'node' && drag.moved) { snapshot(); scheduleSave(); }
+        if (drag?.type === 'node' && !drag.moved) {
+          const id = drag.id;
+          setTimeout(() => { if (nodeById(id)) selectNode(id); }, 0);
+        }
         drag = null;
       });
       el('canvasArea').addEventListener('pointercancel', () => {
@@ -569,7 +905,7 @@
         const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); return; }
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }
-        if (typing) return;
+        if (typing || document.activeElement?.matches('button, a, select, [contenteditable="true"]')) return;
         if (event.key === 'Tab') { event.preventDefault(); addChild(); }
         if (event.key === 'Enter') { event.preventDefault(); addSibling(); }
         if (event.key === 'F2') { event.preventDefault(); beginEdit(selectedId); }
