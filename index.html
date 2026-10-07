@@ -57,13 +57,16 @@
     .workspace.sidebar-hidden .leftbar { padding-left: 0; padding-right: 0; border-right-width: 0; }
     .side-label { padding: 0 10px; color: #727d73; font: 500 11px 'DM Mono', monospace; letter-spacing: .5px; text-transform: uppercase; }
     .project-list { display: grid; gap: 5px; margin-top: 10px; }
-    .map-row { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 10px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); text-align: left; font-size: 14px; cursor: pointer; }
+    .project-row { display: flex; align-items: center; gap: 3px; min-width: 0; border-radius: 6px; }
+    .project-row:hover { background: #f5f7f3; }
+    .map-row { min-width: 0; flex: 1; display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 10px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); text-align: left; font-size: 14px; cursor: pointer; }
     .map-row:hover { background: #f5f7f3; }
     .map-row.active { background: #f0f4ef; color: var(--green); font-weight: 700; }
     .map-row svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; }
     .map-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .project-row .trash-quiet { width: 30px; height: 30px; margin-right: 5px; padding: 0; border-color: transparent; background: transparent; opacity: .4; }
+    .project-row:hover .trash-quiet, .project-row .trash-quiet:focus-visible { opacity: .85; }
     .project-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .project-actions { display: flex; flex: none; gap: 4px; }
     .project-heading .button { flex: none; width: 32px; height: 32px; padding: 0; }
     .button.trash-quiet { color: #8b817e; opacity: .62; }
     .button.trash-quiet:hover:not(:disabled) { border-color: #ecd0c8; background: #fbefec; color: #a34d3b; opacity: 1; }
@@ -94,6 +97,12 @@
     .mind-node.root .node-dot { display: none; }
     .node-text { overflow-wrap: anywhere; pointer-events: none; }
     .node-meta { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 4px; padding-left: 18px; font: 600 10px 'DM Sans', sans-serif; }
+    .node-delete { position: absolute; top: -9px; right: -9px; z-index: 2; width: 25px; height: 25px; padding: 0; border: 1px solid #e7e9e2; border-radius: 50%; background: white; color: #8b817e; opacity: .45; cursor: pointer; }
+    .node-delete svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .mind-node:hover .node-delete, .mind-node.selected .node-delete, .node-delete:focus-visible { opacity: .95; }
+    .node-delete:hover { border-color: #ecd0c8; background: #fbefec; color: #a34d3b; }
+    .task-card .node-delete { top: 8px; right: 8px; }
+    .task-list .node-delete { position: static; width: 30px; height: 30px; opacity: .65; }
     .priority-badge, .deadline-badge { display: inline-flex; align-items: center; gap: 4px; width: fit-content; padding: 2px 6px; border-radius: 12px; background: #f0f2ef; color: #536056; line-height: 1.4; }
     .priority-high { background: #fbe9e5; color: #a6412d; }
     .priority-medium { background: #fff2d8; color: #875b09; }
@@ -116,8 +125,9 @@
     .task-column { min-height: 180px; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.7); }
     .task-column h3 { display: flex; justify-content: space-between; margin: 0 0 10px; color: #465349; font-size: 13px; }
     .task-cards { display: grid; gap: 8px; }
-    .task-card { padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--node-color, var(--green)); border-radius: 7px; background: white; box-shadow: 0 2px 8px rgba(38,54,42,.04); cursor: pointer; }
+    .task-card { position: relative; padding: 12px 42px 12px 12px; border: 1px solid var(--line); border-left: 3px solid var(--node-color, var(--green)); border-radius: 7px; background: white; box-shadow: 0 2px 8px rgba(38,54,42,.04); cursor: pointer; }
     .task-card:hover { border-color: #bdcbbc; }
+    .task-card:hover .node-delete, .task-card .node-delete:focus-visible { opacity: .95; }
     .task-card-title { margin-bottom: 8px; font-weight: 700; overflow-wrap: anywhere; }
     .task-card-meta { display: flex; flex-wrap: wrap; gap: 5px; color: #69746b; font-size: 11px; }
     .task-card select { width: 100%; margin-top: 10px; font-size: 12px; }
@@ -141,7 +151,8 @@
     .details-heading { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 24px; }
     .details-title-wrap { min-width: 0; flex: 1; }
     .details-actions { display: flex; flex: none; gap: 6px; }
-    .details-title { margin: 0; overflow-wrap: anywhere; font: 800 24px 'Manrope', sans-serif; }
+    .details-title { width: 100%; margin: 0; padding: 0 3px; border: 1px solid transparent; border-radius: 5px; outline: 0; background: transparent; color: var(--ink); font: 800 24px 'Manrope', sans-serif; }
+    .details-title:focus { border-color: #cfd7cd; background: #fbfcfa; }
     .topic-kind { display: inline-block; margin-top: 8px; padding: 4px 9px; border-radius: 20px; background: var(--green-light); color: var(--green); font-size: 13px; font-weight: 700; }
     .topic-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .topic-option { min-width: 0; }
@@ -228,14 +239,9 @@
       <aside class="leftbar">
         <div class="project-heading">
           <div class="side-label">Không gian làm việc</div>
-          <div class="project-actions">
-            <button class="button icon trash-quiet" id="deleteProject" aria-label="Xóa project hiện tại" title="Xóa project hiện tại">
-              <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>
-            </button>
-            <button class="button icon" id="createProject" aria-label="Tạo project mới" title="Tạo project mới">
-              <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
-            </button>
-          </div>
+          <button class="button icon" id="createProject" aria-label="Tạo project mới" title="Tạo project mới">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
+          </button>
         </div>
         <div class="project-list" id="projectList" aria-label="Danh sách project"></div>
         <details class="side-section help-section" open>
@@ -274,7 +280,7 @@
       <section class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
         <div class="details-heading">
           <div class="details-title-wrap">
-            <h2 class="details-title" id="detailsTitle"></h2>
+            <input class="details-title" id="detailsTitle" aria-label="Tên chủ đề" maxlength="160">
             <span class="topic-kind" id="topicKind"></span>
           </div>
           <div class="details-actions">
@@ -450,6 +456,7 @@
           item.style.setProperty('--node-color', node.color || COLORS[0]);
           item.innerHTML = '<span class="node-dot"></span><span class="node-text"></span><span class="node-meta"></span>';
           item.querySelector('.node-text').textContent = visibleText(node.text);
+          if (node.id !== 'root') item.append(createTopicDeleteButton(node));
           const priority = priorityOf(node);
           const badge = document.createElement('span');
           badge.className = `priority-badge priority-${priority}`;
@@ -543,7 +550,7 @@
         }
         const table = document.createElement('table');
         table.className = 'task-list';
-        table.innerHTML = '<thead><tr><th>Chủ đề</th><th>Ưu tiên</th><th>Deadline</th><th>Trạng thái</th></tr></thead>';
+        table.innerHTML = '<thead><tr><th>Chủ đề</th><th>Ưu tiên</th><th>Deadline</th><th>Trạng thái</th><th aria-label="Thao tác"></th></tr></thead>';
         const body = document.createElement('tbody');
         for (const node of ordered) {
           const row = document.createElement('tr');
@@ -558,7 +565,9 @@
           deadline.textContent = deadlineLabel(node.deadline);
           const status = document.createElement('td');
           status.textContent = statusLabel(statusOf(node));
-          row.append(topic, priorityCell, deadline, status);
+          const actions = document.createElement('td');
+          actions.append(createTopicDeleteButton(node));
+          row.append(topic, priorityCell, deadline, status, actions);
           body.append(row);
         }
         table.append(body);
@@ -571,6 +580,18 @@
         badge.className = `priority-badge priority-${priority}`;
         badge.textContent = priorityLabel(priority);
         return badge;
+      }
+
+      function createTopicDeleteButton(node) {
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'node-delete';
+        remove.title = `Xóa chủ đề ${visibleText(node.text)}`;
+        remove.setAttribute('aria-label', `Xóa chủ đề ${visibleText(node.text)}`);
+        remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
+        remove.addEventListener('pointerdown', event => event.stopPropagation());
+        remove.addEventListener('click', event => { event.stopPropagation(); deleteTopic(node.id); });
+        return remove;
       }
 
       function createTaskCard(node, showStatus) {
@@ -590,7 +611,7 @@
         deadline.className = 'deadline-badge';
         deadline.textContent = deadlineLabel(node.deadline);
         meta.append(deadline);
-        card.append(title, meta);
+        card.append(title, meta, createTopicDeleteButton(node));
         if (showStatus) {
           const status = document.createElement('select');
           status.setAttribute('aria-label', `Trạng thái ${visibleText(node.text)}`);
@@ -614,6 +635,8 @@
         const list = el('projectList');
         list.replaceChildren();
         for (const project of projectsState.projects) {
+          const row = document.createElement('div');
+          row.className = 'project-row';
           const button = document.createElement('button');
           button.className = `map-row${project.id === map.id ? ' active' : ''}`;
           button.type = 'button';
@@ -625,7 +648,15 @@
           title.textContent = projectTitle;
           button.append(title);
           button.addEventListener('click', () => switchProject(project.id));
-          list.append(button);
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'button icon trash-quiet';
+          remove.title = `Xóa project ${projectTitle}`;
+          remove.setAttribute('aria-label', `Xóa project ${projectTitle}`);
+          remove.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
+          remove.addEventListener('click', event => { event.stopPropagation(); deleteProject(project.id); });
+          row.append(button, remove);
+          list.append(row);
         }
       }
 
@@ -640,7 +671,7 @@
         if (!node) return;
         node.note = node.note || '';
         node.attachments = Array.isArray(node.attachments) ? node.attachments : [];
-        el('detailsTitle').textContent = visibleText(node.text);
+        el('detailsTitle').value = node.text;
         el('topicKind').textContent = node.id === 'root' ? 'Chủ đề chính' : 'Chủ đề phụ';
         el('deleteTopic').disabled = node.id === 'root';
         el('deleteTopic').title = node.id === 'root' ? 'Không thể xóa chủ đề chính' : 'Xóa chủ đề';
@@ -651,7 +682,7 @@
         el('topicText').value = node.note;
         renderAttachments(node);
         el('detailsOverlay').hidden = false;
-        el('topicText').focus();
+        el('detailsTitle').focus();
       }
 
       function closeTopicDetails() { el('detailsOverlay').hidden = true; }
@@ -707,16 +738,22 @@
         persistProjects();
       }
 
-      function deleteProject() {
-        const projectTitle = map.title || 'Project không tên';
-        if (!window.confirm(`Xóa project "${projectTitle}" và toàn bộ chủ đề, ghi chú, tài liệu trong project này?`)) return;
-        clearTimeout(saveTimer);
-        const removedIndex = projectsState.projects.findIndex(project => project.id === map.id);
-        if (removedIndex === -1) {
+      function deleteProject(projectId = map.id) {
+        const projectIndex = projectsState.projects.findIndex(project => project.id === projectId);
+        const project = projectsState.projects[projectIndex];
+        if (!project) {
           showToast('Không tìm thấy project cần xóa');
           return;
         }
-        projectsState.projects = projectsState.projects.filter(project => project.id !== map.id);
+        const projectTitle = project.id === map.id ? map.title || 'Project không tên' : project.title || 'Project không tên';
+        if (!window.confirm(`Xóa project "${projectTitle}" và toàn bộ chủ đề, ghi chú, tài liệu trong project này?`)) return;
+        if (projectId === map.id) clearTimeout(saveTimer);
+        projectsState.projects.splice(projectIndex, 1);
+        if (projectId !== map.id) {
+          if (persistProjects()) showToast('Đã xóa project');
+          renderProjects();
+          return;
+        }
         const wasLastProject = projectsState.projects.length === 0;
         if (wasLastProject) {
           const id = `project-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -781,8 +818,10 @@
         snapshot(); scheduleSave(); render(); beginEdit(sibling.id);
       }
 
-      function deleteSelected() {
-        const node = nodeById(selectedId);
+      function deleteSelected() { deleteTopic(selectedId); }
+
+      function deleteTopic(id) {
+        const node = nodeById(id);
         if (!node || node.id === 'root') return;
         const removed = new Set([node.id]);
         let changed = true;
@@ -794,9 +833,9 @@
         if (!window.confirm(`Xóa chủ đề "${visibleText(node.text)}"${count > 1 ? ` và ${count - 1} chủ đề phụ` : ''}?`)) return;
         snapshot();
         map.nodes = map.nodes.filter(item => !removed.has(item.id));
-        selectedId = node.parent;
+        if (removed.has(selectedId)) selectedId = node.parent;
         snapshot(); scheduleSave(); render();
-        closeTopicDetails();
+        if (removed.has(id)) closeTopicDetails();
         showToast('Đã xóa chủ đề');
       }
 
@@ -830,7 +869,7 @@
       }
 
       function startNodeDrag(event) {
-        if (event.target.tagName === 'INPUT') return;
+        if (event.target.tagName === 'INPUT' || event.target.closest('.node-delete')) return;
         const node = nodeById(event.currentTarget.dataset.id);
         if (!node) return;
         selectedId = node.id;
@@ -927,12 +966,11 @@
         el('canvasTitle').textContent = map.title;
         renderProjects();
         const rootText = document.querySelector('.mind-node.root .node-text'); if (rootText) rootText.textContent = visibleText(map.title);
-        if (!el('detailsOverlay').hidden && selectedId === 'root') el('detailsTitle').textContent = visibleText(map.title);
+        if (!el('detailsOverlay').hidden && selectedId === 'root') el('detailsTitle').value = map.title;
         scheduleSave();
       });
       el('mapTitle').addEventListener('change', snapshot);
       el('createProject').addEventListener('click', createProject);
-      el('deleteProject').addEventListener('click', deleteProject);
       el('toggleSidebar').addEventListener('click', () => {
         projectsState.sidebarVisible = !projectsState.sidebarVisible;
         updateSidebarVisibility();
@@ -940,6 +978,38 @@
       });
       el('closeDetails').addEventListener('click', closeTopicDetails);
       el('deleteTopic').addEventListener('click', deleteSelected);
+      el('detailsTitle').addEventListener('input', event => {
+        const node = nodeById(selectedId);
+        if (!node) return;
+        node.text = event.target.value;
+        if (node.id === 'root') {
+          map.title = node.text;
+          el('mapTitle').value = map.title;
+          el('canvasTitle').textContent = map.title;
+          renderProjects();
+        }
+        const nodeText = document.querySelector(`.mind-node[data-id="${CSS.escape(node.id)}"] .node-text`);
+        if (nodeText) nodeText.textContent = visibleText(node.text);
+        scheduleSave();
+      });
+      el('detailsTitle').addEventListener('change', event => {
+        const node = nodeById(selectedId);
+        if (!node) return;
+        node.text = event.target.value.trim() || 'Chủ đề mới';
+        event.target.value = node.text;
+        if (node.id === 'root') {
+          map.title = node.text;
+          el('mapTitle').value = map.title;
+          el('canvasTitle').textContent = map.title;
+          renderProjects();
+        }
+        snapshot();
+        scheduleSave();
+        render();
+      });
+      el('detailsTitle').addEventListener('keydown', event => {
+        if (event.key === 'Enter') { event.preventDefault(); event.target.blur(); }
+      });
       el('detailsOverlay').addEventListener('click', event => {
         if (event.target === el('detailsOverlay')) closeTopicDetails();
       });
