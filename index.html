@@ -63,8 +63,15 @@
     .map-row svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; }
     .map-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .project-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .project-actions { display: flex; flex: none; gap: 4px; }
     .project-heading .button { flex: none; width: 32px; height: 32px; padding: 0; }
+    .button.trash-quiet { color: #8b817e; opacity: .62; }
+    .button.trash-quiet:hover:not(:disabled) { border-color: #ecd0c8; background: #fbefec; color: #a34d3b; opacity: 1; }
     .side-section { margin-top: 35px; }
+    .help-section > summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; user-select: none; }
+    .help-section > summary::-webkit-details-marker { display: none; }
+    .help-section > summary::after { width: 7px; height: 7px; margin-right: 7px; border-right: 1.5px solid #778078; border-bottom: 1.5px solid #778078; content: ''; transform: rotate(45deg) translateY(-2px); transition: transform .15s; }
+    .help-section:not([open]) > summary::after { transform: rotate(-45deg); }
     .side-tools { margin-top: 10px; display: grid; gap: 3px; }
     .tool { width: 100%; min-height: 42px; padding: 0 10px; display: flex; align-items: center; gap: 11px; border: 0; border-radius: 5px; background: transparent; text-align: left; font-size: 14px; cursor: pointer; }
     .tool:hover { background: #f5f7f3; }
@@ -131,8 +138,9 @@
     .details-overlay { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px; background: rgba(24, 34, 27, .42); }
     .details-overlay[hidden] { display: none; }
     .details-dialog { width: min(600px, 100%); max-height: min(760px, 90vh); overflow-y: auto; padding: 28px; border: 1px solid var(--line); border-radius: 14px; background: white; box-shadow: 0 24px 70px rgba(20, 33, 24, .2); }
-    .details-heading { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 24px; }
+    .details-heading { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 24px; }
     .details-title-wrap { min-width: 0; flex: 1; }
+    .details-actions { display: flex; flex: none; gap: 6px; }
     .details-title { margin: 0; overflow-wrap: anywhere; font: 800 24px 'Manrope', sans-serif; }
     .topic-kind { display: inline-block; margin-top: 8px; padding: 4px 9px; border-radius: 20px; background: var(--green-light); color: var(--green); font-size: 13px; font-weight: 700; }
     .topic-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -220,13 +228,18 @@
       <aside class="leftbar">
         <div class="project-heading">
           <div class="side-label">Không gian làm việc</div>
-          <button class="button icon" id="createProject" aria-label="Tạo project mới" title="Tạo project mới">
-            <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
-          </button>
+          <div class="project-actions">
+            <button class="button icon trash-quiet" id="deleteProject" aria-label="Xóa project hiện tại" title="Xóa project hiện tại">
+              <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>
+            </button>
+            <button class="button icon" id="createProject" aria-label="Tạo project mới" title="Tạo project mới">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
+            </button>
+          </div>
         </div>
         <div class="project-list" id="projectList" aria-label="Danh sách project"></div>
-        <section class="side-section">
-          <div class="side-label">Hướng dẫn sử dụng</div>
+        <details class="side-section help-section" open>
+          <summary class="side-label" aria-label="Thu gọn hoặc mở Hướng dẫn sử dụng">Hướng dẫn sử dụng</summary>
           <div class="side-tools">
             <button class="tool" id="addChild"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 12h4a3 3 0 0 0 3-3V8.5M12.5 12a3 3 0 0 1 3 3v.5"/></svg><span>Thêm chủ đề phụ</span><span class="key">Tab</span></button>
             <button class="tool" id="addSibling"><svg viewBox="0 0 24 24"><path d="M12 4v16M12 8H6m6 8h6"/><circle cx="5" cy="8" r="2"/><circle cx="19" cy="16" r="2"/><circle cx="12" cy="4" r="1.5"/></svg><span>Thêm chủ đề phụ cùng cấp</span><span class="key">Enter</span></button>
@@ -235,7 +248,7 @@
             <button class="tool" id="undoButton"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2"/></svg><span>Hoàn tác</span><span class="key">Ctrl Z</span></button>
             <button class="tool" id="redoButton"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5m5 5H10a6 6 0 0 0 0 12h2"/></svg><span>Làm lại</span><span class="key">Ctrl Y</span></button>
           </div>
-        </section>
+        </details>
       </aside>
 
       <section class="canvas-area" id="canvasArea" aria-label="Vùng sơ đồ tư duy">
@@ -264,9 +277,14 @@
             <h2 class="details-title" id="detailsTitle"></h2>
             <span class="topic-kind" id="topicKind"></span>
           </div>
-          <button class="button icon details-close" id="closeDetails" aria-label="Đóng chi tiết" title="Đóng">
-            <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
-          </button>
+          <div class="details-actions">
+            <button class="button icon trash-quiet" id="deleteTopic" aria-label="Xóa chủ đề" title="Xóa chủ đề">
+              <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>
+            </button>
+            <button class="button icon details-close" id="closeDetails" aria-label="Đóng chi tiết" title="Đóng">
+              <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            </button>
+          </div>
         </div>
         <div class="topic-options">
           <label class="topic-option"><span class="field-label">Mức độ ưu tiên</span>
@@ -624,6 +642,9 @@
         node.attachments = Array.isArray(node.attachments) ? node.attachments : [];
         el('detailsTitle').textContent = visibleText(node.text);
         el('topicKind').textContent = node.id === 'root' ? 'Chủ đề chính' : 'Chủ đề phụ';
+        el('deleteTopic').disabled = node.id === 'root';
+        el('deleteTopic').title = node.id === 'root' ? 'Không thể xóa chủ đề chính' : 'Xóa chủ đề';
+        el('deleteTopic').setAttribute('aria-label', node.id === 'root' ? 'Không thể xóa chủ đề chính' : 'Xóa chủ đề');
         el('topicPriority').value = priorityOf(node);
         el('topicDeadline').value = /^\d{4}-\d{2}-\d{2}$/.test(node.deadline || '') ? node.deadline : '';
         el('topicStatus').value = statusOf(node);
@@ -686,6 +707,35 @@
         persistProjects();
       }
 
+      function deleteProject() {
+        const projectTitle = map.title || 'Project không tên';
+        if (!window.confirm(`Xóa project "${projectTitle}" và toàn bộ chủ đề, ghi chú, tài liệu trong project này?`)) return;
+        clearTimeout(saveTimer);
+        const removedIndex = projectsState.projects.findIndex(project => project.id === map.id);
+        if (removedIndex === -1) {
+          showToast('Không tìm thấy project cần xóa');
+          return;
+        }
+        projectsState.projects = projectsState.projects.filter(project => project.id !== map.id);
+        const wasLastProject = projectsState.projects.length === 0;
+        if (wasLastProject) {
+          const id = `project-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          map = { id, title: 'Project mới', nodes: [{ id: 'root', parent: null, text: 'Project mới', color: '#2b5947', x: 0, y: 0 }] };
+          projectsState.projects.push(map);
+        } else {
+          map = projectsState.projects[Math.min(removedIndex, projectsState.projects.length - 1)];
+        }
+        projectsState.activeProjectId = map.id;
+        selectedId = 'root';
+        history = [];
+        historyIndex = -1;
+        closeTopicDetails();
+        render();
+        fitMap();
+        snapshot();
+        if (persistProjects()) showToast(wasLastProject ? 'Đã xóa project; đã tạo project trống mới' : 'Đã xóa project');
+      }
+
       function switchProject(id) {
         if (id === map.id) return;
         clearTimeout(saveTimer);
@@ -734,16 +784,20 @@
       function deleteSelected() {
         const node = nodeById(selectedId);
         if (!node || node.id === 'root') return;
-        snapshot();
         const removed = new Set([node.id]);
         let changed = true;
         while (changed) {
           changed = false;
           for (const item of map.nodes) if (removed.has(item.parent) && !removed.has(item.id)) { removed.add(item.id); changed = true; }
         }
+        const count = removed.size;
+        if (!window.confirm(`Xóa chủ đề "${visibleText(node.text)}"${count > 1 ? ` và ${count - 1} chủ đề phụ` : ''}?`)) return;
+        snapshot();
         map.nodes = map.nodes.filter(item => !removed.has(item.id));
         selectedId = node.parent;
         snapshot(); scheduleSave(); render();
+        closeTopicDetails();
+        showToast('Đã xóa chủ đề');
       }
 
       function beginEdit(id) {
@@ -878,12 +932,14 @@
       });
       el('mapTitle').addEventListener('change', snapshot);
       el('createProject').addEventListener('click', createProject);
+      el('deleteProject').addEventListener('click', deleteProject);
       el('toggleSidebar').addEventListener('click', () => {
         projectsState.sidebarVisible = !projectsState.sidebarVisible;
         updateSidebarVisibility();
         persistProjects();
       });
       el('closeDetails').addEventListener('click', closeTopicDetails);
+      el('deleteTopic').addEventListener('click', deleteSelected);
       el('detailsOverlay').addEventListener('click', event => {
         if (event.target === el('detailsOverlay')) closeTopicDetails();
       });
