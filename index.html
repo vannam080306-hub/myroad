@@ -79,19 +79,54 @@
     .stage { position: absolute; left: 50%; top: 50%; width: 2400px; height: 1600px; transform-origin: center; will-change: transform; }
     .links { position: absolute; inset: 0; width: 2400px; height: 1600px; overflow: visible; pointer-events: none; }
     .links path { fill: none; stroke-width: 2.5; stroke-linecap: round; opacity: .78; }
-    .mind-node { position: absolute; min-width: 144px; max-width: 190px; min-height: 48px; display: flex; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid #e1e6de; border-radius: 7px; background: white; box-shadow: 0 3px 10px rgba(38, 54, 42, .06); color: var(--ink); font-size: 15px; line-height: 1.4; font-weight: 600; cursor: grab; user-select: none; transition: box-shadow .15s, border-color .15s, transform .15s; }
+    .mind-node { position: absolute; min-width: 144px; max-width: 190px; min-height: 48px; display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid #e1e6de; border-radius: 7px; background: white; box-shadow: 0 3px 10px rgba(38, 54, 42, .06); color: var(--ink); font-size: 15px; line-height: 1.4; font-weight: 600; cursor: grab; user-select: none; transition: box-shadow .15s, border-color .15s, transform .15s; }
     .mind-node:hover { border-color: #bbcbbb; box-shadow: 0 5px 16px rgba(38, 54, 42, .12); }
     .mind-node.selected { border: 2px solid var(--node-color, var(--green)); padding: 9px 12px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--node-color, var(--green)) 12%, transparent), 0 5px 15px rgba(38, 54, 42, .1); }
     .mind-node.root { min-width: 188px; min-height: 64px; justify-content: center; padding: 13px 17px; border: 0; border-radius: 9px; background: var(--green); color: white; font: 700 15px 'Manrope', sans-serif; text-align: center; box-shadow: 0 8px 20px rgba(43, 89, 71, .2); }
     .node-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--node-color); }
     .mind-node.root .node-dot { display: none; }
     .node-text { overflow-wrap: anywhere; pointer-events: none; }
+    .node-meta { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 4px; padding-left: 18px; font: 600 10px 'DM Sans', sans-serif; }
+    .priority-badge, .deadline-badge { display: inline-flex; align-items: center; gap: 4px; width: fit-content; padding: 2px 6px; border-radius: 12px; background: #f0f2ef; color: #536056; line-height: 1.4; }
+    .priority-high { background: #fbe9e5; color: #a6412d; }
+    .priority-medium { background: #fff2d8; color: #875b09; }
+    .priority-low { background: #e8f1e8; color: #386447; }
+    .mind-node.root .node-meta { justify-content: center; padding-left: 0; }
     .mind-node input { width: 100%; min-width: 90px; padding: 0; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
     .mind-node.root input { text-align: center; }
     .zoom-controls { position: absolute; z-index: 2; left: 18px; bottom: 18px; display: flex; align-items: center; gap: 4px; padding: 5px; border: 1px solid #e5e8e1; border-radius: 7px; background: white; box-shadow: 0 4px 12px rgba(40, 48, 39, .06); }
     .zoom-controls .button { border: 0; }
     .zoom-level { min-width: 43px; color: #68726a; text-align: center; font: 12px 'DM Mono', monospace; }
     .canvas-hint { position: absolute; right: 20px; bottom: 26px; color: #747e75; font-size: 12px; }
+    .view-switch { position: absolute; z-index: 3; top: 12px; right: 16px; display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: white; box-shadow: 0 3px 10px rgba(38, 54, 42, .06); }
+    .view-button { min-height: 30px; padding: 0 10px; border: 0; border-radius: 5px; background: transparent; color: #58645a; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .view-button[aria-pressed="true"] { background: var(--green-light); color: var(--green); }
+    .task-view { position: absolute; inset: 58px 18px 54px; overflow: auto; }
+    .task-view[hidden] { display: none; }
+    .task-toolbar { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; color: #657067; font-size: 13px; }
+    .task-toolbar select, .task-card select { min-height: 32px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); }
+    .task-board { display: grid; grid-template-columns: repeat(3, minmax(210px, 1fr)); align-items: start; gap: 14px; min-width: 680px; }
+    .task-column { min-height: 180px; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.7); }
+    .task-column h3 { display: flex; justify-content: space-between; margin: 0 0 10px; color: #465349; font-size: 13px; }
+    .task-cards { display: grid; gap: 8px; }
+    .task-card { padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--node-color, var(--green)); border-radius: 7px; background: white; box-shadow: 0 2px 8px rgba(38,54,42,.04); cursor: pointer; }
+    .task-card:hover { border-color: #bdcbbc; }
+    .task-card-title { margin-bottom: 8px; font-weight: 700; overflow-wrap: anywhere; }
+    .task-card-meta { display: flex; flex-wrap: wrap; gap: 5px; color: #69746b; font-size: 11px; }
+    .task-card select { width: 100%; margin-top: 10px; font-size: 12px; }
+    .task-list { width: 100%; border-collapse: collapse; background: rgba(255,255,255,.82); }
+    .task-list th, .task-list td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+    .task-list th { position: sticky; top: 0; background: #f1f4ef; color: #5c685e; font-size: 12px; }
+    .task-list td:first-child { font-weight: 600; }
+    .task-list tbody tr { cursor: pointer; }
+    .task-list tbody tr:hover { background: #f6f8f4; }
+    .empty-view { padding: 32px; color: var(--muted); text-align: center; }
+    .action-menu { position: relative; }
+    .action-menu summary { list-style: none; }
+    .action-menu summary::-webkit-details-marker { display: none; }
+    .action-menu[open] { z-index: 10; }
+    .action-menu-list { position: absolute; top: calc(100% + 6px); right: 0; display: grid; min-width: 180px; gap: 3px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: white; box-shadow: var(--shadow); }
+    .action-menu-list .button { justify-content: flex-start; border: 0; }
 
     .details-overlay { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px; background: rgba(24, 34, 27, .42); }
     .details-overlay[hidden] { display: none; }
@@ -100,6 +135,10 @@
     .details-title-wrap { min-width: 0; flex: 1; }
     .details-title { margin: 0; overflow-wrap: anywhere; font: 800 24px 'Manrope', sans-serif; }
     .topic-kind { display: inline-block; margin-top: 8px; padding: 4px 9px; border-radius: 20px; background: var(--green-light); color: var(--green); font-size: 13px; font-weight: 700; }
+    .topic-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .topic-option { min-width: 0; }
+    .topic-option .field-label { margin-top: 0; }
+    .topic-option select, .topic-option input { width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink); }
     .details-close { flex: none; width: 38px; height: 38px; }
     .field-label { display: block; margin: 20px 0 9px; color: #536056; font-size: 14px; font-weight: 700; }
     .topic-field { width: 100%; min-height: 150px; resize: vertical; padding: 13px; border: 1px solid var(--line); border-radius: 7px; outline: none; font-size: 15px; line-height: 1.6; }
@@ -127,7 +166,11 @@
       .topbar { gap: 8px; padding: 0 8px; }
       .top-spacer { display: none; }
       .topbar .button { width: 32px; height: 32px; padding: 0; font-size: 13px; }
-      #exportJsonButton { display: none; }
+      .action-menu-list { min-width: 158px; }
+      .task-view { inset: 90px 10px 48px; }
+      .view-switch { top: 44px; right: 8px; }
+      .view-button { padding: 0 7px; font-size: 11px; }
+      .topic-options { grid-template-columns: 1fr; gap: 4px; }
       .workspace, .workspace.sidebar-hidden { grid-template-columns: minmax(0, 1fr); }
       .workspace.sidebar-hidden .leftbar { display: none; }
       .leftbar { position: absolute; inset: 56px auto 0 0; width: min(290px, 85vw); overflow-y: auto; box-shadow: 12px 0 30px rgba(20, 33, 24, .12); }
@@ -154,15 +197,22 @@
         <svg viewBox="0 0 24 24" width="15" height="15"><circle cx="10.8" cy="10.8" r="6.7" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
         <input class="search" id="searchInput" placeholder="Tìm chủ đề..." type="search">
       </label>
-      <button class="button" id="importButton" title="Mở sơ đồ JSON">
-        <svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 14v5h14v-5"/></svg><span class="export-label">Mở</span>
-      </button>
-      <button class="button" id="exportJsonButton" title="Lưu sơ đồ dạng JSON">
-        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/><path d="M8 7h1m6 0h1"/></svg><span class="export-label">JSON</span>
-      </button>
-      <button class="button primary" id="exportButton" title="Xuất sơ đồ dạng SVG">
-        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg><span class="export-label">Xuất</span>
-      </button>
+      <details class="action-menu">
+        <summary class="button" aria-label="Mở menu tệp">
+          <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg><span>Tệp</span>
+        </summary>
+        <div class="action-menu-list">
+          <button class="button" id="importButton" title="Mở sơ đồ JSON">
+            <svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 14v5h14v-5"/></svg><span>Mở JSON</span>
+          </button>
+          <button class="button" id="exportJsonButton" title="Lưu sơ đồ dạng JSON">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/><path d="M8 7h1m6 0h1"/></svg><span>Xuất JSON</span>
+          </button>
+          <button class="button" id="exportButton" title="Xuất sơ đồ dạng SVG">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg><span>Xuất SVG</span>
+          </button>
+        </div>
+      </details>
       <input class="file-input" id="fileInput" type="file" accept="application/json,.json">
     </header>
 
@@ -176,17 +226,12 @@
         </div>
         <div class="project-list" id="projectList" aria-label="Danh sách project"></div>
         <section class="side-section">
-          <div class="side-label">Chỉnh sửa</div>
+          <div class="side-label">Hướng dẫn sử dụng</div>
           <div class="side-tools">
             <button class="tool" id="addChild"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 12h4a3 3 0 0 0 3-3V8.5M12.5 12a3 3 0 0 1 3 3v.5"/></svg><span>Thêm chủ đề phụ</span><span class="key">Tab</span></button>
             <button class="tool" id="addSibling"><svg viewBox="0 0 24 24"><path d="M12 4v16M12 8H6m6 8h6"/><circle cx="5" cy="8" r="2"/><circle cx="19" cy="16" r="2"/><circle cx="12" cy="4" r="1.5"/></svg><span>Thêm chủ đề phụ cùng cấp</span><span class="key">Enter</span></button>
             <button class="tool" id="editNode"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg><span>Đổi tên chủ đề</span><span class="key">F2</span></button>
             <button class="tool" id="deleteNode"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg><span>Xóa chủ đề</span><span class="key">Del</span></button>
-          </div>
-        </section>
-        <section class="side-section">
-          <div class="side-label">Lịch sử</div>
-          <div class="side-tools">
             <button class="tool" id="undoButton"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2"/></svg><span>Hoàn tác</span><span class="key">Ctrl Z</span></button>
             <button class="tool" id="redoButton"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5m5 5H10a6 6 0 0 0 0 12h2"/></svg><span>Làm lại</span><span class="key">Ctrl Y</span></button>
           </div>
@@ -195,8 +240,14 @@
 
       <section class="canvas-area" id="canvasArea" aria-label="Vùng sơ đồ tư duy">
         <div class="canvas-top"><span class="crumb-dot"></span><strong>PROJECT</strong><span>/</span><span id="canvasTitle">Kế hoạch dự án</span></div>
+        <nav class="view-switch" aria-label="Chế độ xem project">
+          <button class="view-button" type="button" data-view="map" aria-pressed="true">Sơ đồ</button>
+          <button class="view-button" type="button" data-view="board" aria-pressed="false">Kanban</button>
+          <button class="view-button" type="button" data-view="list" aria-pressed="false">Danh sách</button>
+        </nav>
         <div class="stage" id="stage"><svg class="links" id="links" viewBox="0 0 2400 1600" aria-hidden="true"></svg><div id="nodes"></div></div>
-        <div class="zoom-controls">
+        <div class="task-view" id="taskView" hidden></div>
+        <div class="zoom-controls" id="zoomControls">
           <button class="button icon" id="zoomOut" aria-label="Thu nhỏ" title="Thu nhỏ"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
           <span class="zoom-level" id="zoomLabel">100%</span>
           <button class="button icon" id="zoomIn" aria-label="Phóng to" title="Phóng to"><svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg></button>
@@ -216,6 +267,21 @@
           <button class="button icon details-close" id="closeDetails" aria-label="Đóng chi tiết" title="Đóng">
             <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
           </button>
+        </div>
+        <div class="topic-options">
+          <label class="topic-option"><span class="field-label">Mức độ ưu tiên</span>
+            <select id="topicPriority" aria-label="Mức độ ưu tiên">
+              <option value="low">Thấp</option><option value="medium">Trung bình</option><option value="high">Cao</option>
+            </select>
+          </label>
+          <label class="topic-option"><span class="field-label">Hạn deadline</span>
+            <input id="topicDeadline" type="date" aria-label="Hạn deadline">
+          </label>
+          <label class="topic-option"><span class="field-label">Trạng thái</span>
+            <select id="topicStatus" aria-label="Trạng thái công việc">
+              <option value="todo">Cần làm</option><option value="inprogress">Đang làm</option><option value="done">Hoàn thành</option>
+            </select>
+          </label>
         </div>
         <label class="field-label" for="topicText">Ghi chú</label>
         <textarea class="topic-field" id="topicText"></textarea>
@@ -266,6 +332,8 @@
       let toastTimer;
       let drag = null;
       let editingId = null;
+      let activeView = 'map';
+      let taskSort = 'deadline';
 
       function loadProjects() {
         try {
@@ -317,6 +385,15 @@
       function childrenOf(id) { return map.nodes.filter(node => node.parent === id); }
       function nodeById(id) { return map.nodes.find(node => node.id === id); }
       function visibleText(text) { return text || 'Chủ đề mới'; }
+      function priorityOf(node) { return ['low', 'medium', 'high'].includes(node.priority) ? node.priority : 'medium'; }
+      function priorityLabel(priority) { return ({ low: 'Thấp', medium: 'Trung bình', high: 'Cao' })[priority] || 'Trung bình'; }
+      function deadlineLabel(deadline) {
+        if (!deadline) return 'Chưa đặt hạn';
+        const date = new Date(`${deadline}T00:00:00`);
+        return Number.isNaN(date.getTime()) ? 'Ngày không hợp lệ' : date.toLocaleDateString('vi-VN');
+      }
+      function statusOf(node) { return ['todo', 'inprogress', 'done'].includes(node.status) ? node.status : 'todo'; }
+      function statusLabel(status) { return ({ todo: 'Cần làm', inprogress: 'Đang làm', done: 'Hoàn thành' })[status] || 'Cần làm'; }
 
       function renderLinks() {
         const links = [];
@@ -353,22 +430,164 @@
           item.style.top = `${800 + node.y}px`;
           item.style.transform = 'translate(-50%, -50%)';
           item.style.setProperty('--node-color', node.color || COLORS[0]);
-          item.innerHTML = `<span class="node-dot"></span><span class="node-text"></span>`;
+          item.innerHTML = '<span class="node-dot"></span><span class="node-text"></span><span class="node-meta"></span>';
           item.querySelector('.node-text').textContent = visibleText(node.text);
+          const priority = priorityOf(node);
+          const badge = document.createElement('span');
+          badge.className = `priority-badge priority-${priority}`;
+          badge.textContent = `Ưu tiên ${priorityLabel(priority).toLocaleLowerCase('vi')}`;
+          item.querySelector('.node-meta').append(badge);
+          if (node.deadline) {
+            const deadline = document.createElement('span');
+            deadline.className = 'deadline-badge';
+            deadline.textContent = deadlineLabel(node.deadline);
+            item.querySelector('.node-meta').append(deadline);
+          }
+          item.setAttribute('aria-label', `${visibleText(node.text)}, ưu tiên ${priorityLabel(priority)}, hạn ${deadlineLabel(node.deadline)}`);
           item.addEventListener('pointerdown', startNodeDrag);
-          item.addEventListener('click', () => selectNode(node.id, true));
+          item.addEventListener('click', () => selectNode(node.id));
+          item.addEventListener('dblclick', () => { selectedId = node.id; render(); openTopicDetails(node.id); });
           item.addEventListener('keydown', event => {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
               event.stopPropagation();
-              selectNode(node.id, true);
+              selectNode(node.id);
+              openTopicDetails(node.id);
             }
           });
           el('nodes').append(item);
         }
         renderLinks();
+        renderTaskView();
         applyTransform();
         updateHistoryButtons();
+      }
+
+      function renderTaskView() {
+        const taskView = el('taskView');
+        const mapView = activeView === 'map';
+        el('stage').hidden = !mapView;
+        el('zoomControls').hidden = !mapView;
+        taskView.hidden = mapView;
+        document.querySelectorAll('.view-button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === activeView)));
+        if (mapView) return;
+        taskView.replaceChildren();
+        const nodes = map.nodes.filter(node => node.id !== 'root');
+        if (activeView === 'board') {
+          const board = document.createElement('div');
+          board.className = 'task-board';
+          const columns = [
+            { id: 'todo', label: 'Cần làm' },
+            { id: 'inprogress', label: 'Đang làm' },
+            { id: 'done', label: 'Hoàn thành' }
+          ];
+          for (const column of columns) {
+            const section = document.createElement('section');
+            section.className = 'task-column';
+            const heading = document.createElement('h3');
+            const title = document.createElement('span');
+            title.textContent = column.label;
+            const count = document.createElement('span');
+            count.textContent = String(nodes.filter(node => statusOf(node) === column.id).length);
+            heading.append(title, count);
+            const cards = document.createElement('div');
+            cards.className = 'task-cards';
+            for (const node of nodes.filter(item => statusOf(item) === column.id)) cards.append(createTaskCard(node, true));
+            section.append(heading, cards);
+            board.append(section);
+          }
+          taskView.append(board);
+          return;
+        }
+        const toolbar = document.createElement('div');
+        toolbar.className = 'task-toolbar';
+        const label = document.createElement('label');
+        label.textContent = 'Sắp xếp theo';
+        label.htmlFor = 'taskSort';
+        const sort = document.createElement('select');
+        sort.id = 'taskSort';
+        sort.innerHTML = '<option value="deadline">Hạn deadline, sau đó ưu tiên</option><option value="priority">Mức độ ưu tiên, sau đó deadline</option>';
+        sort.value = taskSort;
+        sort.addEventListener('change', () => { taskSort = sort.value; renderTaskView(); });
+        toolbar.append(label, sort);
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        const ordered = [...nodes].sort((first, second) => {
+          const byPriority = priorityOrder[priorityOf(first)] - priorityOrder[priorityOf(second)];
+          const byDeadline = (first.deadline || '9999-12-31').localeCompare(second.deadline || '9999-12-31');
+          return taskSort === 'priority' ? byPriority || byDeadline : byDeadline || byPriority;
+        });
+        if (!ordered.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-view';
+          empty.textContent = 'Chưa có chủ đề công việc. Hãy thêm chủ đề vào sơ đồ.';
+          taskView.append(toolbar, empty);
+          return;
+        }
+        const table = document.createElement('table');
+        table.className = 'task-list';
+        table.innerHTML = '<thead><tr><th>Chủ đề</th><th>Ưu tiên</th><th>Deadline</th><th>Trạng thái</th></tr></thead>';
+        const body = document.createElement('tbody');
+        for (const node of ordered) {
+          const row = document.createElement('tr');
+          row.tabIndex = 0;
+          row.addEventListener('click', () => selectNode(node.id));
+          row.addEventListener('dblclick', () => { selectedId = node.id; render(); openTopicDetails(node.id); });
+          const topic = document.createElement('td');
+          topic.textContent = visibleText(node.text);
+          const priorityCell = document.createElement('td');
+          priorityCell.append(createPriorityBadge(node));
+          const deadline = document.createElement('td');
+          deadline.textContent = deadlineLabel(node.deadline);
+          const status = document.createElement('td');
+          status.textContent = statusLabel(statusOf(node));
+          row.append(topic, priorityCell, deadline, status);
+          body.append(row);
+        }
+        table.append(body);
+        taskView.append(toolbar, table);
+      }
+
+      function createPriorityBadge(node) {
+        const priority = priorityOf(node);
+        const badge = document.createElement('span');
+        badge.className = `priority-badge priority-${priority}`;
+        badge.textContent = priorityLabel(priority);
+        return badge;
+      }
+
+      function createTaskCard(node, showStatus) {
+        const card = document.createElement('article');
+        card.className = 'task-card';
+        card.tabIndex = 0;
+        card.style.setProperty('--node-color', node.color || COLORS[0]);
+        card.addEventListener('click', () => selectNode(node.id));
+        card.addEventListener('dblclick', () => { selectedId = node.id; render(); openTopicDetails(node.id); });
+        const title = document.createElement('div');
+        title.className = 'task-card-title';
+        title.textContent = visibleText(node.text);
+        const meta = document.createElement('div');
+        meta.className = 'task-card-meta';
+        meta.append(createPriorityBadge(node));
+        const deadline = document.createElement('span');
+        deadline.className = 'deadline-badge';
+        deadline.textContent = deadlineLabel(node.deadline);
+        meta.append(deadline);
+        card.append(title, meta);
+        if (showStatus) {
+          const status = document.createElement('select');
+          status.setAttribute('aria-label', `Trạng thái ${visibleText(node.text)}`);
+          status.innerHTML = '<option value="todo">Cần làm</option><option value="inprogress">Đang làm</option><option value="done">Hoàn thành</option>';
+          status.value = statusOf(node);
+          status.addEventListener('click', event => event.stopPropagation());
+          status.addEventListener('change', event => {
+            node.status = event.target.value;
+            snapshot();
+            scheduleSave();
+            renderTaskView();
+          });
+          card.append(status);
+        }
+        return card;
       }
 
       function escapeAttr(value) { return String(value).replace(/[&"<>]/g, char => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[char]); }
@@ -392,10 +611,10 @@
         }
       }
 
-      function selectNode(id, showDetails = false) {
+      function selectNode(id) {
+        document.querySelectorAll('.mind-node.selected').forEach(item => item.classList.remove('selected'));
         selectedId = id;
-        render();
-        if (showDetails) openTopicDetails(id);
+        document.querySelector(`.mind-node[data-id="${CSS.escape(id)}"]`)?.classList.add('selected');
       }
 
       function openTopicDetails(id) {
@@ -405,6 +624,9 @@
         node.attachments = Array.isArray(node.attachments) ? node.attachments : [];
         el('detailsTitle').textContent = visibleText(node.text);
         el('topicKind').textContent = node.id === 'root' ? 'Chủ đề chính' : 'Chủ đề phụ';
+        el('topicPriority').value = priorityOf(node);
+        el('topicDeadline').value = /^\d{4}-\d{2}-\d{2}$/.test(node.deadline || '') ? node.deadline : '';
+        el('topicStatus').value = statusOf(node);
         el('topicText').value = node.note;
         renderAttachments(node);
         el('detailsOverlay').hidden = false;
@@ -488,9 +710,10 @@
         snapshot();
         const siblings = childrenOf(parent.id);
         const direction = parent.id === 'root' ? (siblings.length % 2 === 0 ? 1 : -1) : (parent.x >= nodeById(parent.parent)?.x ? 1 : -1);
-        const child = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: parent.id === 'root' ? COLORS[siblings.length % COLORS.length] : parent.color, x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y + (siblings.length ? (siblings.length % 2 ? 100 : -100) : 0) };
+        const child = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: parent.id === 'root' ? COLORS[siblings.length % COLORS.length] : parent.color, priority: 'medium', status: 'todo', x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y + (siblings.length ? (siblings.length % 2 ? 100 : -100) : 0) };
         map.nodes.push(child);
         selectedId = child.id;
+        activeView = 'map';
         snapshot(); scheduleSave(); render(); beginEdit(child.id);
       }
 
@@ -501,9 +724,10 @@
         if (!parent) return;
         snapshot();
         const siblings = childrenOf(parent.id);
-        const sibling = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: node.color, x: node.x, y: node.y + (siblings.length % 2 ? 100 : -100) };
+        const sibling = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: node.color, priority: 'medium', status: 'todo', x: node.x, y: node.y + (siblings.length % 2 ? 100 : -100) };
         map.nodes.push(sibling);
         selectedId = sibling.id;
+        activeView = 'map';
         snapshot(); scheduleSave(); render(); beginEdit(sibling.id);
       }
 
@@ -670,6 +894,17 @@
         scheduleSave();
       });
       el('topicText').addEventListener('change', snapshot);
+      const updateTopicField = (field, value) => {
+        const node = nodeById(selectedId);
+        if (!node) return;
+        node[field] = value;
+        snapshot();
+        scheduleSave();
+        render();
+      };
+      el('topicPriority').addEventListener('change', event => updateTopicField('priority', event.target.value));
+      el('topicDeadline').addEventListener('change', event => updateTopicField('deadline', event.target.value));
+      el('topicStatus').addEventListener('change', event => updateTopicField('status', event.target.value));
       el('uploadAttachment').addEventListener('click', () => el('attachmentInput').click());
       el('attachmentInput').addEventListener('change', async event => {
         const node = nodeById(selectedId);
@@ -701,6 +936,15 @@
       el('redoButton').addEventListener('click', redo);
       el('exportButton').addEventListener('click', exportSvg);
       el('exportJsonButton').addEventListener('click', exportJson);
+      document.querySelectorAll('.action-menu-list .button').forEach(button => {
+        button.addEventListener('click', () => { button.closest('.action-menu').open = false; });
+      });
+      document.querySelectorAll('.view-button').forEach(button => {
+        button.addEventListener('click', () => {
+          activeView = button.dataset.view;
+          renderTaskView();
+        });
+      });
       el('zoomIn').addEventListener('click', () => { zoom = Math.min(1.8, zoom + .1); applyTransform(); });
       el('zoomOut').addEventListener('click', () => { zoom = Math.max(.45, zoom - .1); applyTransform(); });
       el('fitButton').addEventListener('click', fitMap);
@@ -709,7 +953,7 @@
         event.preventDefault(); zoom = Math.max(.45, Math.min(1.8, zoom + (event.deltaY < 0 ? .08 : -.08))); applyTransform();
       }, { passive: false });
       el('canvasArea').addEventListener('pointerdown', event => {
-        if (event.target.closest('.mind-node, .zoom-controls, .canvas-top')) return;
+        if (event.target.closest('.mind-node, .zoom-controls, .canvas-top, .view-switch, .task-view')) return;
         drag = { type: 'pan', startX: event.clientX, startY: event.clientY, x: pan.x, y: pan.y };
         el('canvasArea').setPointerCapture(event.pointerId);
       });
@@ -739,13 +983,14 @@
         try {
           const imported = JSON.parse(await file.text());
           if (!imported || !Array.isArray(imported.nodes) || !imported.nodes.some(node => node.id === 'root')) throw new Error('invalid map');
-          snapshot(); map = { ...imported, id: map.id, title: String(imported.title || 'Sơ đồ mới'), nodes: imported.nodes.map(node => ({ ...node, x: Number(node.x) || 0, y: Number(node.y) || 0, text: String(node.text || ''), note: String(node.note || ''), attachments: Array.isArray(node.attachments) ? node.attachments : [] })) };
+          snapshot(); map = { ...imported, id: map.id, title: String(imported.title || 'Sơ đồ mới'), nodes: imported.nodes.map(node => ({ ...node, x: Number(node.x) || 0, y: Number(node.y) || 0, text: String(node.text || ''), note: String(node.note || ''), priority: ['low', 'medium', 'high'].includes(node.priority) ? node.priority : 'medium', deadline: /^\d{4}-\d{2}-\d{2}$/.test(node.deadline || '') ? node.deadline : '', status: ['todo', 'inprogress', 'done'].includes(node.status) ? node.status : 'todo', attachments: Array.isArray(node.attachments) ? node.attachments : [] })) };
+          activeView = 'map';
           selectedId = 'root'; fitMap(); snapshot(); scheduleSave(); render(); showToast('Đã mở sơ đồ');
         } catch (_) { showToast('Tệp không đúng định dạng sơ đồ JSON'); }
         event.target.value = '';
       });
       document.addEventListener('keydown', event => {
-        const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+        const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
         if (event.key === 'Escape' && !el('detailsOverlay').hidden) { closeTopicDetails(); return; }
         if (!el('detailsOverlay').hidden) return;
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); return; }
