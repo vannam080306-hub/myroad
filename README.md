@@ -4,6 +4,8 @@
 
 - Nhấp một lần vào chủ đề để chọn; nhấp đúp để mở ghi chú và tài liệu đính kèm.
 - Mỗi chủ đề có thể đặt mức ưu tiên, hạn deadline và trạng thái công việc trong phần chi tiết.
+- Trạng thái **Cần làm**, **Đang làm**, **Hoàn thành** có nhãn đỏ, vàng, xanh lá bên ngoài khung chủ đề. Chủ đề có chủ đề con sẽ tự hoàn thành khi các chủ đề con đều hoàn thành.
+- Chủ đề mới được tự tìm vị trí không chồng lấn; vẫn có thể kéo chủ đề để tự sắp xếp.
 - Chuyển giữa các chế độ **Sơ đồ**, **Kanban** và **Danh sách** ở phía trên vùng làm việc. Danh sách có thể sắp xếp theo deadline hoặc mức ưu tiên.
 - Dùng menu **Tệp** để mở JSON hoặc xuất sơ đồ thành JSON/SVG.
 - Dùng biểu tượng thùng rác trên từng project hoặc từng chủ đề (trên sơ đồ, Kanban và danh sách) để xóa project/chủ đề cùng các chủ đề con. Ứng dụng sẽ yêu cầu xác nhận trước khi xóa.

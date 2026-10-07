@@ -107,6 +107,12 @@
     .priority-high { background: #fbe9e5; color: #a6412d; }
     .priority-medium { background: #fff2d8; color: #875b09; }
     .priority-low { background: #e8f1e8; color: #386447; }
+    .node-status { position: absolute; top: calc(100% + 2px); left: 7px; z-index: 1; display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border: 1px solid rgba(255,255,255,.85); border-radius: 12px; box-shadow: 0 1px 4px rgba(38,54,42,.12); font: 700 10px 'DM Sans', sans-serif; white-space: nowrap; }
+    .node-status::before { width: 6px; height: 6px; border-radius: 50%; background: currentColor; content: ''; }
+    .status-todo { background: #fbe9e5; color: #aa4535; }
+    .status-inprogress { background: #fff2d8; color: #8b650b; }
+    .status-done { background: #e5f1e7; color: #36734a; }
+    .task-card .node-status { position: static; border-color: transparent; box-shadow: none; }
     .mind-node.root .node-meta { justify-content: center; padding-left: 0; }
     .mind-node input { width: 100%; min-width: 90px; padding: 0; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
     .mind-node.root input { text-align: center; }
@@ -416,7 +422,16 @@
         const date = new Date(`${deadline}T00:00:00`);
         return Number.isNaN(date.getTime()) ? 'Ngày không hợp lệ' : date.toLocaleDateString('vi-VN');
       }
-      function statusOf(node) { return ['todo', 'inprogress', 'done'].includes(node.status) ? node.status : 'todo'; }
+      function statusOf(node) {
+        const ownStatus = ['todo', 'inprogress', 'done'].includes(node.status) ? node.status : 'todo';
+        const children = childrenOf(node.id);
+        if (!children.length) return ownStatus;
+        const childStatuses = children.map(statusOf);
+        if (childStatuses.every(status => status === 'done')) return 'done';
+        return ownStatus === 'inprogress' || ownStatus === 'done' || childStatuses.some(status => status !== 'todo')
+          ? 'inprogress'
+          : 'todo';
+      }
       function statusLabel(status) { return ({ todo: 'Cần làm', inprogress: 'Đang làm', done: 'Hoàn thành' })[status] || 'Cần làm'; }
 
       function renderLinks() {
@@ -468,6 +483,7 @@
             deadline.textContent = deadlineLabel(node.deadline);
             item.querySelector('.node-meta').append(deadline);
           }
+          item.append(createStatusBadge(node));
           item.setAttribute('aria-label', `${visibleText(node.text)}, ưu tiên ${priorityLabel(priority)}, hạn ${deadlineLabel(node.deadline)}`);
           item.addEventListener('pointerdown', startNodeDrag);
           item.addEventListener('click', () => selectNode(node.id));
@@ -564,7 +580,7 @@
           const deadline = document.createElement('td');
           deadline.textContent = deadlineLabel(node.deadline);
           const status = document.createElement('td');
-          status.textContent = statusLabel(statusOf(node));
+          status.append(createStatusBadge(node));
           const actions = document.createElement('td');
           actions.append(createTopicDeleteButton(node));
           row.append(topic, priorityCell, deadline, status, actions);
@@ -579,6 +595,14 @@
         const badge = document.createElement('span');
         badge.className = `priority-badge priority-${priority}`;
         badge.textContent = priorityLabel(priority);
+        return badge;
+      }
+
+      function createStatusBadge(node) {
+        const status = statusOf(node);
+        const badge = document.createElement('span');
+        badge.className = `node-status status-${status}`;
+        badge.textContent = statusLabel(status);
         return badge;
       }
 
@@ -611,12 +635,14 @@
         deadline.className = 'deadline-badge';
         deadline.textContent = deadlineLabel(node.deadline);
         meta.append(deadline);
-        card.append(title, meta, createTopicDeleteButton(node));
+        card.append(title, meta, createStatusBadge(node), createTopicDeleteButton(node));
         if (showStatus) {
           const status = document.createElement('select');
           status.setAttribute('aria-label', `Trạng thái ${visibleText(node.text)}`);
           status.innerHTML = '<option value="todo">Cần làm</option><option value="inprogress">Đang làm</option><option value="done">Hoàn thành</option>';
           status.value = statusOf(node);
+          status.disabled = childrenOf(node.id).length > 0;
+          status.title = status.disabled ? 'Trạng thái tự động theo các chủ đề con' : '';
           status.addEventListener('click', event => event.stopPropagation());
           status.addEventListener('change', event => {
             node.status = event.target.value;
@@ -679,6 +705,8 @@
         el('topicPriority').value = priorityOf(node);
         el('topicDeadline').value = /^\d{4}-\d{2}-\d{2}$/.test(node.deadline || '') ? node.deadline : '';
         el('topicStatus').value = statusOf(node);
+        el('topicStatus').disabled = childrenOf(node.id).length > 0;
+        el('topicStatus').title = el('topicStatus').disabled ? 'Trạng thái tự động theo các chủ đề con' : '';
         el('topicText').value = node.note;
         renderAttachments(node);
         el('detailsOverlay').hidden = false;
@@ -797,7 +825,8 @@
         snapshot();
         const siblings = childrenOf(parent.id);
         const direction = parent.id === 'root' ? (siblings.length % 2 === 0 ? 1 : -1) : (parent.x >= nodeById(parent.parent)?.x ? 1 : -1);
-        const child = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: parent.id === 'root' ? COLORS[siblings.length % COLORS.length] : parent.color, priority: 'medium', status: 'todo', x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y + (siblings.length ? (siblings.length % 2 ? 100 : -100) : 0) };
+        const child = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: parent.id === 'root' ? COLORS[siblings.length % COLORS.length] : parent.color, priority: 'medium', status: 'todo', x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y };
+        placeNewTopic(child, parent.x + direction * (parent.id === 'root' ? 300 : 250), parent.y, direction);
         map.nodes.push(child);
         selectedId = child.id;
         activeView = 'map';
@@ -810,12 +839,33 @@
         const parent = nodeById(node.parent);
         if (!parent) return;
         snapshot();
-        const siblings = childrenOf(parent.id);
-        const sibling = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: node.color, priority: 'medium', status: 'todo', x: node.x, y: node.y + (siblings.length % 2 ? 100 : -100) };
+        const direction = parent.id === 'root' ? (node.x >= parent.x ? 1 : -1) : (parent.x >= nodeById(parent.parent)?.x ? 1 : -1);
+        const sibling = { id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, parent: parent.id, text: 'Chủ đề mới', color: node.color, priority: 'medium', status: 'todo', x: parent.x + direction * (parent.id === 'root' ? 300 : 250), y: parent.y };
+        placeNewTopic(sibling, sibling.x, sibling.y, direction);
         map.nodes.push(sibling);
         selectedId = sibling.id;
         activeView = 'map';
         snapshot(); scheduleSave(); render(); beginEdit(sibling.id);
+      }
+
+      function placeNewTopic(node, baseX, baseY, direction) {
+        const verticalOffsets = [0];
+        for (let step = 1; step <= map.nodes.length; step++) verticalOffsets.push(step * 120, -step * 120);
+        for (let column = 0; column <= map.nodes.length; column++) {
+          const x = baseX + direction * column * 230;
+          for (const row of verticalOffsets) {
+            const y = baseY + row;
+            const overlaps = map.nodes.some(existing =>
+              Math.abs(existing.x - x) < 230 && Math.abs(existing.y - y) < 120
+            );
+            if (!overlaps) {
+              node.x = x;
+              node.y = y;
+              return;
+            }
+          }
+        }
+        throw new Error('Không tìm được vị trí trống cho chủ đề mới');
       }
 
       function deleteSelected() { deleteTopic(selectedId); }
